@@ -1,16 +1,43 @@
 {
-  "name": "열쉼 - 온열질환 예방",
-  "short_name": "열쉼",
-  "description": "체감온도와 개인 심박 기준선으로 온열 위험을 알려주는 앱",
-  "lang": "ko",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#121417",
-  "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
-    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
-  ]
+ "name": "휴식벨트 - 온열질환 예방",
+ "short_name": "휴식벨트",
+ "description": "체감온도와 개인 심박 기준선으로 온열 위험을 알려주는 앱",
+ "lang": "ko",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#f5efe7",
+ "theme_color": "#f5efe7",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "구조 요청 (SOS)",
+   "short_name": "구조 요청",
+   "description": "5초 뒤 관리자에게 구조 요청",
+   "url": "./?sos=1",
+   "icons": [
+    {
+     "src": "icons/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
+ ]
 }
