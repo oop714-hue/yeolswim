@@ -1,0 +1,1661 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5efe7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="휴식벨트">
+<title>휴식벨트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* 현장용: 크림색 바탕, 큰 글씨, 큰 버튼. 상태 색은 신호등(초록·노랑·주황·빨강)만 쓴다. */
+:root{
+  --bg:#f5efe7; --card:#fffdfa; --sunk:#f1e9df; --ink:#2a221d; --ink2:#5a4f47; --muted:#8c8077; --line:#e9dfd3;
+  --g:#2f9e5c; --y:#e9a90c; --o:#e8742a; --r:#d8382f; --idle:#8a7c70; --brand:#c4612d; --sos:#d8382f; --water:#2f7fd6;
+  --gt:#e3f3e8; --yt:#fdf1cf; --ot:#fde3d1; --rt:#fbdcd8; --it:#efe6db;
+  --shadow:0 1px 0 rgba(60,40,20,.04),0 6px 18px rgba(60,40,20,.07);
+  --font:"Noto Sans KR",-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#171412; --card:#221e1b; --sunk:#2c2723; --ink:#f4ede6; --ink2:#d6ccc3; --muted:#a2968c; --line:#3a332e;
+  --gt:#1d3326; --yt:#3a3016; --ot:#3d2617; --rt:#3d1d1a; --it:#2c2723; --shadow:none; color-scheme:dark}}
+body{--lc:var(--idle);--lt:var(--it)}
+body[data-lv="0"]{--lc:var(--g);--lt:var(--gt)} body[data-lv="1"]{--lc:var(--y);--lt:var(--yt)}
+body[data-lv="2"]{--lc:var(--o);--lt:var(--ot)} body[data-lv="3"]{--lc:var(--r);--lt:var(--rt)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.02em;word-break:keep-all;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body.big .app,body.big .sheet{zoom:1.1}
+.app{max-width:480px;margin:0 auto;padding-top:max(10px,env(safe-area-inset-top,0px));padding-bottom:140px;display:flex;flex-direction:column;gap:14px}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+p{margin:0} h1,h2,h3{margin:0}
+.muted{color:var(--muted)} .small{font-size:14px} .tiny{font-size:12.5px}
+a{color:inherit}
+
+/* 위쪽 줄 */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 0}
+.brand{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:900;letter-spacing:-.04em}
+.brand svg{width:30px;height:30px}
+.who{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);color:var(--ink);font:inherit;font-size:15px;font-weight:700;border-radius:999px;padding:8px 14px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.who svg{width:16px;height:16px}
+.iconbtn{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--ink);cursor:pointer}
+.iconbtn svg{width:22px;height:22px}
+
+/* 카드 */
+.card{background:var(--card);border-radius:24px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:20px;font-weight:900;letter-spacing:-.03em}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sec{font-size:20px;font-weight:900;letter-spacing:-.03em;padding:6px 4px 0}
+
+/* 전원 버튼 상태 카드 */
+.hero{background:var(--lt);border-radius:28px;padding:16px 16px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;overflow:hidden;transition:background .4s}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700}
+.pill i{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.pill.on i{background:var(--g);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.3}}
+.power{appearance:none;border:0;cursor:pointer;width:150px;height:150px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--lc);margin-top:4px;
+  box-shadow:0 0 0 10px color-mix(in srgb,var(--lc) 18%,transparent),0 10px 26px rgba(60,40,20,.15);transition:transform .1s,color .4s,box-shadow .4s}
+.power:active{transform:scale(.96)}
+.power svg{width:64px;height:64px}
+.power.on{background:var(--lc);color:#fff}
+.hero .lv{font-size:34px;font-weight:900;letter-spacing:-.04em;line-height:1.1;color:var(--ink);text-align:center}
+.hero .say{font-size:17px;font-weight:700;text-align:center;color:var(--ink2)}
+.hero .sub{font-size:14.5px;color:var(--muted);font-weight:600;text-align:center}
+.hero .mascot{position:absolute;right:8px;top:8px;width:74px;height:74px}
+.lights{display:flex;gap:6px;margin-top:4px}
+.lights span{font-size:13px;font-weight:800;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--muted);display:flex;align-items:center;gap:5px}
+.lights span i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.lights span.on{background:var(--c);color:#fff}
+.lights span.on i{background:#fff}
+
+/* 온도계 */
+.thermo{display:grid;grid-template-columns:86px minmax(0,1fr);gap:14px;align-items:center}
+.thermo svg{width:86px;height:240px}
+.tbig{font-size:52px;font-weight:900;letter-spacing:-.05em;line-height:1}
+.tbig small{font-size:24px;font-weight:700}
+.tag{display:inline-flex;align-items:center;gap:6px;border-radius:12px;padding:7px 10px;font-weight:800;font-size:15px;background:var(--lt2,var(--sunk));color:var(--ink)}
+.tag i{width:10px;height:10px;border-radius:50%;background:var(--tc,var(--muted))}
+
+/* 큰 기능 버튼 */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:22px;padding:16px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:138px}
+.tile:active{transform:scale(.98)}
+.tile .ti{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--tc) 14%,var(--card));color:var(--tc)}
+.tile .ti svg{width:28px;height:28px}
+.tile b{font-size:19px;font-weight:900;letter-spacing:-.03em;line-height:1.2}
+.tile span{font-size:14px;color:var(--muted);font-weight:600;line-height:1.35}
+
+/* 체크리스트 카드 */
+.ckcard{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:14px;align-items:center}
+.ckicon{width:56px;height:56px;border-radius:18px;background:color-mix(in srgb,var(--brand) 14%,var(--card));color:var(--brand);display:grid;place-items:center}
+.ckicon svg{width:30px;height:30px}
+.bar{height:10px;border-radius:5px;background:var(--sunk);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--g);border-radius:5px;transition:width .4s}
+
+/* 나의 기준 */
+.rules3{display:flex;flex-direction:column;gap:8px}
+.rules3>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--sunk);border-radius:16px;padding:12px 14px}
+.rules3>div.me{background:var(--lt);box-shadow:inset 0 0 0 2px var(--lc)}
+.rules3 b{font-size:16px} .rules3 small{display:block;font-size:13.5px;color:var(--muted);font-weight:600}
+.rules3 .t{font-size:24px;font-weight:900;text-align:right;white-space:nowrap}
+.rules3 .t small{display:inline;font-size:14px}
+
+/* 건강수칙 */
+.rulesbox{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;scrollbar-width:none;margin:0 -4px;padding:0 4px}
+.rulesbox::-webkit-scrollbar{display:none}
+.rule{flex:0 0 100%;scroll-snap-align:start;background:var(--sunk);border-radius:20px;padding:16px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center;min-height:118px}
+.rule .ri{width:72px;height:72px;border-radius:20px;background:var(--card);display:grid;place-items:center;color:var(--rc)}
+.rule .ri svg{width:44px;height:44px}
+.rule b{font-size:19px;font-weight:900;display:block;letter-spacing:-.03em}
+.rule em{font-style:normal;font-size:13px;font-weight:900;color:var(--rc)}
+.rule p{font-size:15px;color:var(--ink2);margin-top:2px;line-height:1.4}
+.rule.aid{background:var(--rt)}
+.dots{display:flex;justify-content:center;gap:6px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--ink);width:18px;border-radius:4px}
+
+/* 버튼 */
+.btn{appearance:none;border:0;border-radius:16px;padding:15px 16px;font:inherit;font-size:17px;font-weight:800;cursor:pointer;background:var(--sunk);color:var(--ink);text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:54px}
+.btn.ink{background:var(--ink);color:var(--card)}
+.btn.brand{background:var(--brand);color:#fff}
+.btn.sos{background:var(--sos);color:#fff}
+.btn.green{background:var(--g);color:#fff}
+.btn.line{background:transparent;box-shadow:inset 0 0 0 2px var(--line)}
+.btn.sm{min-height:42px;padding:9px 14px;font-size:15px;border-radius:12px}
+.btn.danger{color:var(--sos)}
+.btn:disabled{opacity:.4}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btns>.btn{flex:1}
+:is(.btn,.tile,.power,.who,.iconbtn,.navb,.opt,.yn button,.key,.ubtn,input,select,summary):focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.flabel{font-size:15px;color:var(--ink2);font-weight:700}
+.field input,.field select{width:100%;font:inherit;font-size:19px;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.field input:focus,.field select:focus{border-color:var(--brand);outline:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{background:var(--sunk);border-radius:16px;padding:13px 15px;font-size:15px;color:var(--ink2);line-height:1.55}
+.note b{color:var(--ink)}
+.note.ok{background:var(--gt)} .note.warn{background:var(--ot)}
+.switch{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700}
+.switch small{display:block;font-weight:500;color:var(--muted);font-size:13.5px}
+.switch input{appearance:none;width:56px;height:34px;border-radius:17px;background:var(--line);position:relative;cursor:pointer;flex:none;margin:0;transition:background .2s}
+.switch input::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked{background:var(--g)}
+.switch input:checked::after{transform:translateX(22px)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--sunk);border-radius:14px;padding:4px}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:16px;font-weight:800;padding:11px 6px;border-radius:11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top,0px));z-index:60;background:var(--ink);color:var(--card);font-weight:800;border-radius:999px;padding:12px 20px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
+.notices{display:flex;flex-direction:column;gap:8px}
+.notices:empty{display:none}
+.notice{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--card);box-shadow:var(--shadow);border-radius:18px;padding:12px 12px 12px 16px;font-size:16px;font-weight:800;border-left:6px solid var(--nc)}
+
+/* 아래 탭 */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+.nav .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1.25fr 1fr 1fr;align-items:end}
+.navb{appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;font-weight:800;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.navb svg{width:26px;height:26px}
+.navb[aria-current="page"]{color:var(--ink)}
+.navb.sosn{color:var(--sos)}
+.navb.sosn b{width:70px;height:70px;margin-top:-30px;border-radius:50%;background:var(--sos);color:#fff;display:grid;place-items:center;font-size:19px;font-weight:900;box-shadow:0 0 0 6px var(--bg),0 8px 20px rgba(216,56,47,.4)}
+.pagehead{padding-top:8px}
+.pagehead h1{font-size:28px;font-weight:900;letter-spacing:-.04em}
+
+/* 표 */
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-size:13px;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.nowrap td{white-space:nowrap}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats div{background:var(--sunk);border-radius:16px;padding:12px;min-width:0}
+.stats small{display:block;font-size:13px;color:var(--muted);font-weight:700}
+.stats b{font-size:20px;font-weight:900}
+.stats b small{display:inline;font-size:13px}
+canvas.chart{width:100%;height:200px;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);font-weight:600}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.events div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.events div:last-child{border-bottom:0}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp>div{background:var(--sunk);border-radius:16px;padding:14px}
+.cmp>div+div{background:var(--ot)}
+.cmp .v{font-size:30px;font-weight:900}
+.cmp small{display:block;font-size:13px;color:var(--muted);font-weight:600}
+details.card summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:800}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"＋";color:var(--muted)}
+details.card[open] summary::after{content:"－"}
+.bar3{display:grid;grid-template-columns:52px minmax(0,1fr) 50px;gap:10px;align-items:center;font-size:14px;font-weight:700}
+.bar3 b{text-align:right}
+.track{height:10px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--lc);border-radius:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:13.5px;font-weight:800;padding:6px 10px;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.chips span.hit{background:var(--rt);color:var(--r)}
+.chips span.ok{background:var(--gt);color:var(--g)}
+.chips span.age{background:var(--brand);color:#fff}
+.chips span.sum{background:var(--ink);color:var(--card)}
+.agebox{background:var(--sunk);border-radius:16px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:6px}
+.agescale{position:relative;display:grid;grid-template-columns:2fr 1fr .5fr .5fr .5fr .5fr;gap:2px;height:12px;margin-top:24px}
+.agescale i{background:var(--c);opacity:.8;border-radius:3px}
+.agescale b{position:absolute;top:-24px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center}
+.agescale b span{background:var(--ink);color:var(--card);font-size:12.5px;font-weight:900;border-radius:8px;padding:1px 7px;white-space:nowrap}
+.agescale b::after{content:"";width:3px;height:22px;background:var(--ink);border-radius:2px;margin-top:1px}
+.agelbl{display:grid;grid-template-columns:2fr 1fr .5fr .5fr .5fr .5fr 0fr;font-size:11px;color:var(--muted);font-weight:700}
+
+/* 덮는 화면 */
+.ov{position:fixed;inset:0;z-index:30;overflow-y:auto;background:var(--bg);
+  padding:max(18px,env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) max(22px,env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column}
+.sheet{max-width:460px;width:100%;margin:auto;display:flex;flex-direction:column;gap:14px}
+.sheet h2{font-size:28px;font-weight:900;letter-spacing:-.04em;line-height:1.3}
+.x{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);width:46px;height:46px;border-radius:50%;font-size:20px;cursor:pointer;color:var(--ink);flex:none}
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--brand)}
+.opt{appearance:none;border:3px solid transparent;text-align:left;font:inherit;color:inherit;background:var(--card);border-radius:22px;padding:18px;box-shadow:var(--shadow);display:grid;grid-template-columns:56px minmax(0,1fr) 30px;gap:14px;align-items:center;cursor:pointer}
+.opt[aria-checked="true"]{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 7%,var(--card))}
+.opt .oi{width:56px;height:56px;border-radius:16px;background:var(--sunk);display:grid;place-items:center}
+.opt .oi svg{width:32px;height:32px}
+.opt b{display:block;font-size:19px}
+.opt small{display:block;color:var(--muted);font-size:14.5px;margin-top:2px}
+.opt .rd{width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--line)}
+.opt[aria-checked="true"] .rd{box-shadow:inset 0 0 0 9px var(--brand)}
+.chk{display:flex;gap:12px;align-items:center;font-size:17px;font-weight:700;padding:15px 16px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);cursor:pointer}
+.chk input{width:26px;height:26px;accent-color:var(--brand);flex:none;margin:0}
+/* 체크리스트 */
+.ckgroup{display:flex;flex-direction:column;gap:8px}
+.ckgroup h3{font-size:15px;font-weight:900;color:var(--brand);padding:6px 2px 0}
+.ckitem{background:var(--card);box-shadow:var(--shadow);border-radius:18px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.ckitem b{font-size:16.5px;line-height:1.35}
+.ckitem small{display:block;color:var(--muted);font-size:13px;font-weight:600;margin-top:2px}
+.yn{display:flex;gap:6px}
+.yn button{appearance:none;border:2px solid var(--line);background:var(--card);color:var(--muted);font:inherit;font-size:15px;font-weight:900;width:60px;height:46px;border-radius:12px;cursor:pointer}
+.yn button[aria-pressed="true"].y{background:var(--g);border-color:var(--g);color:#fff}
+.yn button[aria-pressed="true"].n{background:var(--o);border-color:var(--o);color:#fff}
+/* 잠금·PIN */
+.lockv{display:flex;flex-direction:column;gap:12px}
+.ubtn{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px;font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.ubtn .av{width:52px;height:52px;border-radius:50%;background:var(--sunk);display:grid;place-items:center;font-size:22px;font-weight:900;color:var(--brand);flex:none}
+.ubtn b{font-size:20px;display:block}
+.ubtn small{color:var(--muted);font-size:14px}
+.pindots{display:flex;justify-content:center;gap:18px;margin:6px 0}
+.pindots i{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--ink2)}
+.pindots i.on{background:var(--ink);box-shadow:none}
+.pindots.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.key{appearance:none;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:20px;height:68px;font:inherit;font-size:28px;font-weight:800;color:var(--ink);cursor:pointer}
+.key:active{background:var(--sunk)}
+.key.fn{font-size:16px;background:transparent;box-shadow:none;color:var(--muted)}
+.qrbox{background:#fff;border-radius:22px;padding:14px;display:grid;place-items:center;box-shadow:var(--shadow)}
+.qrbox svg{width:220px;height:220px}
+.scan{position:relative;border-radius:22px;overflow:hidden;background:#000;aspect-ratio:1}
+.scan video{width:100%;height:100%;object-fit:cover}
+.scan::after{content:"";position:absolute;inset:18%;border:4px solid #fff;border-radius:20px;box-shadow:0 0 0 999px rgba(0,0,0,.35)}
+/* SOS */
+.ov.red{background:var(--sos);color:#fff}
+.ov.red .muted{color:rgba(255,255,255,.85)}
+.count{font-size:150px;font-weight:900;line-height:1;text-align:center;letter-spacing:-.05em}
+.bigbtn{appearance:none;border:0;border-radius:22px;min-height:76px;font:inherit;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer;text-decoration:none;color:#fff;background:rgba(0,0,0,.22)}
+.bigbtn svg{width:28px;height:28px}
+.bigbtn.white{background:#fff;color:var(--sos)}
+.bigbtn.dark{background:#2a221d}
+.sosmsg{white-space:pre-wrap;font:inherit;font-size:14px;background:rgba(0,0,0,.18);padding:12px;border-radius:14px;margin:0}
+/* 휴식 */
+.ov.rest{background:var(--rc,var(--o));color:#fff}
+.ov.rest .muted{color:rgba(255,255,255,.85)}
+.ov.rest .btn{background:rgba(255,255,255,.22);color:#fff}
+.ov.rest .btn.white{background:#fff;color:var(--ink)}
+.ov.rest .btn.dark{background:#2a221d}
+.ov.rest .field input{border:0}
+.ov.rest .field label{color:#fff}
+.ring{position:relative;width:230px;aspect-ratio:1;margin:0 auto}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.bigtime{font-size:62px;font-weight:900;line-height:1;letter-spacing:-.05em}
+.ov.dark{background:#2a221d;color:#fff}
+.ov.dark .muted{color:#c9bdb2}
+.tile.wide{flex-direction:row;align-items:center;min-height:0;gap:14px}
+.tile.wide .wtxt{display:flex;flex-direction:column;gap:2px}
+.chatroom{padding:0!important;background:#b8cddf;z-index:31;overflow:hidden;display:flex;flex-direction:column}
+.chathead{display:flex;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top,0px)) 12px 10px;background:#b8cddf;color:#1d2731}
+.chathead b{display:block;font-size:18px}.chathead small{display:block;font-size:12px;opacity:.75}
+.back{appearance:none;border:0;background:transparent;color:inherit;width:40px;height:40px;display:grid;place-items:center;cursor:pointer}.back svg{width:26px;height:26px}
+.chatlog{flex:1;min-height:0;overflow-y:auto;padding:6px 12px 12px;display:flex;flex-direction:column;gap:4px;max-width:560px;width:100%;margin:0 auto}
+.chatempty{text-align:center;color:#4b5a68;margin-top:30px}
+.daysep{display:flex;justify-content:center;margin:14px 0 8px}
+.daysep span{background:rgba(0,0,0,.18);color:#fff;font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 12px}
+.crow{display:flex;gap:8px;align-items:flex-start}
+.crow.first{margin-top:8px}
+.crow.me{justify-content:flex-end}
+.cav{width:40px;height:40px;flex:none;border-radius:15px;overflow:hidden;background:#fff}
+.cav svg{width:40px;height:40px}
+.ccol{display:flex;flex-direction:column;gap:4px;max-width:78%;min-width:0}
+.crow.me .ccol{align-items:flex-end}
+.cname{font-size:13px;color:#2d3a46;font-weight:700}
+.cline{display:flex;align-items:flex-end;gap:6px}
+.crow.me .cline{flex-direction:row-reverse}
+.ctime{font-size:11px;color:#3f4d5a;white-space:nowrap;flex:none}
+.msg{padding:9px 12px;border-radius:16px;font-size:16px;line-height:1.5;color:#1d2731;min-width:0;word-break:keep-all;overflow-wrap:anywhere}
+.msg.bot{background:#fff;border-top-left-radius:4px}
+.crow:not(.first) .msg.bot{border-top-left-radius:16px}
+.msg.me{background:#fee500;border-top-right-radius:4px;font-weight:600}
+.crow:not(.first) .msg.me{border-top-right-radius:16px}
+.crow.bot:not(.first){padding-left:48px}
+.msg .muted{color:#6b7682}
+.msg ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.msgacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btn.water{background:var(--water);color:#fff}
+.btn.dark{background:#2a221d;color:#fff}
+.msg .btn:not(.green):not(.water):not(.dark):not(.sos){background:#eef1f4;color:#1d2731}
+.typing{display:inline-flex;gap:4px;padding:4px 2px}.typing i{width:7px;height:7px;border-radius:50%;background:#9aa6b2;animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+.badge{display:inline-block;font-size:12px;font-weight:900;color:#fff;border-radius:999px;padding:2px 8px;vertical-align:1px}
+.badge.r{background:var(--r)}.badge.o{background:var(--o)}.badge.y{background:var(--y)}
+.chatfoot{flex:none;background:#fff;padding:8px 10px max(10px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;color:#1d2731}
+.quick{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:560px;width:100%;margin:0 auto}
+.quick::-webkit-scrollbar{display:none}
+.qchip{appearance:none;border:1.5px solid #d5dbe1;background:#fff;color:#1d2731;font:inherit;font-size:15px;font-weight:700;border-radius:999px;padding:7px 13px;white-space:nowrap;cursor:pointer}
+.chatbar{display:grid;grid-template-columns:44px minmax(0,1fr) 64px;gap:8px;align-items:center;max-width:560px;width:100%;margin:0 auto}
+.chatbar input{font:inherit;font-size:17px;padding:11px 14px;border-radius:22px;border:0;background:#f1f3f5;color:#1d2731;min-width:0}
+.chatbar input:focus{outline:2px solid #fee500}
+.mic{appearance:none;border:0;border-radius:50%;width:44px;height:44px;background:#f1f3f5;color:#1d2731;display:grid;place-items:center;cursor:pointer}
+.mic svg{width:22px;height:22px}.mic.on{background:var(--sos);color:#fff}
+.send{appearance:none;border:0;height:44px;border-radius:22px;background:#fee500;color:#1d2731;font:inherit;font-weight:900;font-size:16px;cursor:pointer}
+@media (prefers-color-scheme: dark){.chatroom,.chathead{background:#2b3640;color:#eef2f5}.chathead{color:#eef2f5}.cname,.ctime,.chatempty{color:#c3ccd4}.chatfoot{background:#1d242b}.chatbar input,.mic{background:#2b3640;color:#eef2f5}.qchip{background:#2b3640;border-color:#3b4752;color:#eef2f5}}
+/* 증상 */
+.symitem{display:flex;gap:12px;align-items:center;padding:15px;border-radius:18px;background:var(--card);box-shadow:var(--shadow);cursor:pointer;font-size:17px;font-weight:700}
+.symitem input{width:26px;height:26px;accent-color:var(--brand);margin:0;flex:none}
+.sev{font-size:12px;font-weight:900;padding:4px 8px;border-radius:999px;margin-left:auto;flex:none}
+/* 측정 */
+.cam{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;align-items:center}
+.cam video{width:96px;height:96px;object-fit:cover;border-radius:50%;background:var(--sunk)}
+.cam.on video{box-shadow:0 0 0 4px var(--sos)}
+canvas.wave{width:100%;height:90px;display:block;background:var(--sunk);border-radius:14px}
+.prog{height:8px;background:var(--sunk);border-radius:4px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--sos);transition:width .2s}
+.result{font-size:60px;font-weight:900;line-height:1;letter-spacing:-.04em}
+.result small{font-size:18px;color:var(--muted)}
+.wstep{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;font-size:15.5px}
+.wstep b.n{width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-size:14px}
+.guide-step{border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:var(--card);box-shadow:var(--shadow);border-left:7px solid var(--c)}
+.guide-step b{font-size:17px}
+.guide-step ul{margin:0;padding-left:20px;font-size:15px;color:var(--ink2)}
+.slogan{text-align:center;font-size:28px;line-height:1.35}
+.slogan span{color:var(--muted)}
+.slogan em{font-style:normal;color:var(--brand)}
+.slogansub{text-align:center;font-size:17px;font-weight:800;color:var(--ink2);margin-top:-6px}
+#bubOv{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:rgba(30,20,10,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:fadein .2s}
+.bub{width:min(300px,82vw);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 25%,var(--b1),var(--b2));color:var(--bt);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:34px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.3);animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.bub>svg{width:30px;height:30px}
+.bub b{font-size:30px;font-weight:900;letter-spacing:-.04em;line-height:1.15}
+.bub p{font-size:16.5px;font-weight:700;line-height:1.45;opacity:.95}
+.bubok{appearance:none;border:0;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.28);color:inherit;display:grid;place-items:center;cursor:pointer;margin-top:4px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+.bubok svg{width:32px;height:32px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+@keyframes fadein{from{opacity:0}}
+#simBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(98px + env(safe-area-inset-bottom,0px));z-index:12;background:#2a221d;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;display:flex;gap:12px;align-items:center;font-size:14px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:calc(100% - 32px)}
+@media (max-width:360px){.thermo{grid-template-columns:70px minmax(0,1fr)}.thermo svg{width:70px}.tbig{font-size:42px}.tile{min-height:124px;padding:14px}.tile b{font-size:17px}.power{width:130px;height:130px}.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app" hidden>
+  <!-- ===== 홈 ===== -->
+  <section id="v-home" style="display:flex;flex-direction:column;gap:14px">
+    <div class="top">
+      <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="10" fill="#c4612d"/><path d="M6 17h4.5l2.4-6 4 11 2.4-5H26" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>휴식벨트</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="who" id="whoBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="whoName">근로자</span></button>
+        <button class="iconbtn" id="gearBtn" type="button" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+      </div>
+    </div>
+
+    <div class="hero" id="hero">
+      <span class="pill" id="sensePill"><i></i><span id="senseTxt">폰 감지</span></span>
+      <button class="power" id="power" type="button" aria-label="작업 시작"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button>
+      <div class="lv" id="lvName">작업 전</div>
+      <p class="say" id="say">작업을 시작할 때 버튼을 누르세요</p>
+      <p class="sub" id="heroSub">폰을 지니고 움직이면 자동으로 켜져요</p>
+      <div class="lights" id="lights"><span style="--c:var(--g)"><i></i>정상</span><span style="--c:var(--y)"><i></i>주의</span><span style="--c:var(--o)"><i></i>경고</span><span style="--c:var(--r)"><i></i>대피</span></div>
+      <svg class="mascot" id="mascot" viewBox="0 0 140 140" aria-hidden="true"></svg>
+    </div>
+
+    <div class="notices" id="notices"></div>
+
+    <div class="card">
+      <div class="row"><h2>지금 현장 온도</h2><button class="btn sm line" id="envBtn" type="button">바꾸기</button></div>
+      <div class="thermo">
+        <svg id="thermo" viewBox="0 0 86 240" role="img" aria-label="체감온도 온도계"></svg>
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+          <span class="small muted" style="font-weight:700">체감온도 (기상청 계산)</span>
+          <div class="tbig num" id="tFeel">–<small>℃</small></div>
+          <span class="small muted" id="tRaw">온도 – · 습도 –</span>
+          <span class="tag" id="tMine"><i></i><span>나에게는 –</span></span>
+          <span class="small" id="tStage" style="font-weight:700"></span>
+        </div>
+      </div>
+      <button class="btn line" id="guideBtn" type="button">폭염 단계별 대응요령 보기</button>
+    </div>
+
+    <div class="sec">무엇을 할까요?</div>
+    <div class="tiles">
+      <button class="tile" id="tWater" type="button" style="--tc:var(--water)"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3s6.5 7 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10 12 3 12 3z"/></svg></span><b>물 마셨어요</b><span id="waterSub">20분마다 한 컵</span></button>
+      <button class="tile" id="tSym" type="button" style="--tc:var(--o)"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/><path d="M17 4l2-2M19 7h2"/></svg></span><b>몸 상태 체크</b><span>어지러움·두통이 있으면</span></button>
+      <button class="tile" id="tMeasure" type="button" style="--tc:var(--r)"><span class="ti"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 3 5 6.6 5c2 0 3.5 1.1 4.4 2.5C11.9 6.1 13.4 5 15.4 5 19 5 21.1 8.6 19.6 11.9 17.5 16.4 12 21 12 21z"/></svg></span><b>심박·체온 재기</b><span id="hrSub">손가락으로 20초</span></button>
+      <button class="tile" id="tRest" type="button" style="--tc:var(--g)"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg></span><b>지금 쉬기</b><span id="restSub">휴식 타이머 시작</span></button>
+    </div>
+
+    <button class="tile wide" id="tChat" type="button" style="--tc:var(--brand)"><span class="ti"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 10.5h.01M12 10.5h.01M15.5 10.5h.01" stroke-width="3" stroke-linecap="round"/></svg></span><span class="wtxt" style="min-width:0"><b>증상 물어보기 (상담 채팅)</b><span id="chatPrev" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span></span></button>
+
+    <div class="card">
+      <div class="ckcard">
+        <span class="ckicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M8.5 11l2 2 4-4M8.5 17h7"/></svg></span>
+        <div style="min-width:0"><b style="font-size:18px">작업 전 체크리스트</b><p class="small muted" id="ckSub">오늘 아직 안 했어요</p><div class="bar"><i id="ckBar"></i></div></div>
+        <button class="btn brand sm" id="ckBtn" type="button">체크</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h2>나의 휴식 기준</h2><span class="small muted" id="workTime"></span></div>
+      <div class="rules3">
+        <div><div><b>법으로 정한 휴식</b><small id="rLawS">–</small></div><div class="t num" id="rLaw">–</div></div>
+        <div class="me"><div><b>나에게 맞춘 휴식</b><small id="rMineS">–</small></div><div class="t num" id="rMine">–</div></div>
+        <div><div><b>내 몸 신호</b><small id="rBodyS">–</small></div><div class="t num" id="rBody">–</div></div>
+      </div>
+      <div class="agebox">
+        <div class="agescale"><i style="--c:var(--g)"></i><i style="--c:var(--y)"></i><i style="--c:var(--y)"></i><i style="--c:var(--o)"></i><i style="--c:var(--o)"></i><i style="--c:var(--r)"></i><b id="ageMark"><span id="ageMarkTxt"></span></b></div>
+        <div class="agelbl"><span>20</span><span>40</span><span>50</span><span>55</span><span>60</span><span>65</span><span>70세</span></div>
+        <p class="small" id="ageLine"></p>
+      </div>
+      <div class="chips" id="myChips"></div>
+    </div>
+
+    <div class="card">
+      <div class="row"><h2>오늘의 건강수칙</h2><span class="tiny muted" id="ruleNo"></span></div>
+      <div class="rulesbox" id="rulesbox"></div>
+      <div class="dots" id="ruleDots"></div>
+    </div>
+
+    <details class="card" id="whyCard">
+      <summary>휴식벨트는 어떻게 판단하나요?</summary>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="bar3"><span>환경</span><div class="track"><i id="wEnv"></i></div><b id="wEnvV">–</b></div>
+        <div class="bar3"><span id="w2l">활동</span><div class="track"><i id="wAct"></i></div><b id="wActV">–</b></div>
+        <div class="bar3"><span>개인</span><div class="track"><i id="wPer"></i></div><b id="wPerV">–</b></div>
+        <div class="chips" id="wChips"></div>
+        <p class="small muted" id="wText"></p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 기록 ===== -->
+  <section id="v-rep" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="pagehead"><h1>오늘 기록</h1></div>
+    <div class="card">
+      <h2 id="repTitle">오늘</h2>
+      <div class="stats">
+        <div><small>작업</small><b id="rWork">–</b></div><div><small>최고 단계</small><b id="rMax">–</b></div><div><small>알림</small><b id="rAlarm">–</b></div>
+        <div><small>휴식</small><b id="rRest">–</b></div><div><small>물</small><b id="rWater">–</b></div><div><small id="r6l">평균 심박</small><b id="rAvg">–</b></div>
+      </div>
+      <canvas class="chart" id="dayCv" aria-label="오늘 열 부담 변화"></canvas>
+      <div class="legend"><span><i style="background:var(--g)"></i>정상</span><span><i style="background:var(--y)"></i>주의</span><span><i style="background:var(--o)"></i>경고</span><span><i style="background:var(--r)"></i>대피</span><span><i style="background:var(--line)"></i>휴식</span></div>
+      <div class="btns"><a class="btn ink" id="shareSms" href="#" target="_blank" rel="noopener">관리자에게 보내기</a><button class="btn" id="shareCopy" type="button">복사</button></div>
+      <p class="small muted" id="shareMsg"></p>
+    </div>
+    <div class="card"><h2>있었던 일</h2><div class="events" id="evList"></div></div>
+    <div class="card">
+      <h2>5분마다 자동 기록</h2>
+      <div class="tbl"><table class="nowrap"><thead><tr><th>시각</th><th class="r">점수</th><th>단계</th><th class="r">심박</th><th class="r">활동</th><th class="r">체감</th></tr></thead><tbody id="logBody"></tbody></table></div>
+      <p class="small muted" id="logEmpty">작업 중에는 5분마다 자동으로 기록돼요.</p>
+      <div class="btns"><button class="btn sm" id="csvCopy" type="button">엑셀용 복사 (CSV)</button><button class="btn sm danger" id="logClear" type="button">기록 지우기</button></div>
+      <p class="small muted" id="csvMsg"></p>
+    </div>
+  </section>
+
+  <!-- ===== 근거 ===== -->
+  <section id="v-ana" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="pagehead"><h1>판단 근거</h1></div>
+    <div class="seg" id="anaSeg"><button type="button" data-a="sim" aria-pressed="true">사람별 비교</button><button type="button" data-a="crit" aria-pressed="false">기준·출처</button><button type="button" data-a="diff" aria-pressed="false">연구 차별점</button></div>
+    <div id="a-sim" class="card">
+      <h2>같은 현장, 사람마다 다른 휴식</h2>
+      <p class="small muted" id="simCond"></p>
+      <div class="seg" id="simWho"><button type="button" data-w="me" aria-pressed="true">나</button><button type="button" data-w="30" aria-pressed="false">30세</button><button type="button" data-w="45" aria-pressed="false">45세</button><button type="button" data-w="58" aria-pressed="false">58세</button><button type="button" data-w="65" aria-pressed="false">65세</button></div>
+      <div class="cmp"><div><small>법 기준 첫 휴식</small><div class="v num" id="lawT">–</div><small id="lawS"></small></div><div><small>휴식벨트 첫 경고</small><div class="v num" id="myT">–</div><small id="myS"></small></div></div>
+      <canvas class="chart" id="simCv" aria-label="2시간 작업 동안 예상 열 부담"></canvas>
+      <div class="legend"><span><i style="background:var(--ink)"></i>예상 열 부담</span><span><i style="background:var(--o)"></i>휴식벨트 경고</span><span><i style="background:var(--sos)"></i>법 기준 휴식</span></div>
+      <p class="small muted">보통 강도 작업 2시간을 가정한 예측이에요.</p>
+    </div>
+    <div id="a-age" class="card">
+      <h2>나이별 휴식 기준 (지금 현장)</h2>
+      <p class="small muted">다른 조건 없이 나이만 바꿨을 때예요. 나이가 들면 땀 흘리기와 혈관 반응이 느려져 같은 온도에서도 몸에 열이 더 쌓여요.</p>
+      <div class="tbl"><table><thead><tr><th>나이</th><th class="r">보정</th><th class="r">휴식 시작</th><th>지금 휴식</th><th class="r">첫 경고</th></tr></thead><tbody id="ageBody"></tbody></table></div>
+      <p class="tiny muted">휴식 시작 = 법 기준 33℃에서 나이 보정을 뺀 체감온도 · 55세 이상은 고령 근로자로 보고 더 자주 쉬게 해요.</p>
+    </div>
+    <div id="a-crit" class="card" hidden>
+      <h2>기준과 출처</h2>
+      <div class="tbl"><table><thead><tr><th>항목</th><th>기준</th><th>출처</th></tr></thead><tbody>
+        <tr><td><b>체감온도</b></td><td>기온·습도로 계산 (습구온도 + 여름철 산식)</td><td><a href="https://data.kma.go.kr/climate/windChill/selectWindChillChart.do" target="_blank" rel="noopener">기상청</a></td></tr>
+        <tr><td><b>법정 휴식</b></td><td>33℃ 이상 2시간마다 20분 (또는 1시간마다 10분)</td><td><a href="https://www.newsis.com/view/NISX20250715_0003252520" target="_blank" rel="noopener">산업안전보건기준 규칙</a></td></tr>
+        <tr><td><b>단계별 권고</b></td><td>35℃ 이상 매시간 15분 · 38℃ 이상 긴급 외 작업중지</td><td><a href="https://www.daeryunlaw.com/newsletter/news/189" target="_blank" rel="noopener">고용노동부</a></td></tr>
+        <tr><td><b>민감군</b></td><td>고령자·신규 배치자·온열질환 경력자·고혈압·당뇨</td><td><a href="https://moel.go.kr/local/daejeon/info/dataroom/view.do?bbs_seq=20260800043" target="_blank" rel="noopener">고용노동부</a></td></tr>
+        <tr><td><b>작업 전 점검</b></td><td>온열질환 예방 체크리스트 (작업환경·사전준비·폭염대응)</td><td>고용노동부·안전보건공단</td></tr>
+        <tr><td><b>지속 심박</b></td><td>180 − 나이 이상이 몇 분간 유지</td><td><a href="https://www.plantservices.com/safety-and-security/industrial-safety/article/11340513/heat-stress-management-assessment-and-control-strategies" target="_blank" rel="noopener">ACGIH</a></td></tr>
+        <tr><td><b>체온</b></td><td>38.5℃ (적응) · 38.0℃ (미적응)</td><td><a href="https://stacks.cdc.gov/view/cdc/258763/cdc_258763_DS1.pdf" target="_blank" rel="noopener">ACGIH·NIOSH</a></td></tr>
+        <tr><td><b>회복 심박</b></td><td>휴식 1분 뒤 120 넘으면 휴식 연장</td><td><a href="https://www.oshacademy.com/courses/training/646-heat-injury-illness-prevention-supervisor/646-3-9.php" target="_blank" rel="noopener">생리 모니터링 지침</a></td></tr>
+        <tr><td><b>물</b></td><td>20분마다 1컵</td><td><a href="https://www.osha.gov/sites/default/files/publications/OSHA4212.pdf" target="_blank" rel="noopener">OSHA</a></td></tr>
+        <tr><td><b>나의 체감온도</b></td><td>체감온도 + 개인 보정(민감군·오늘 컨디션, 최대 +3℃)</td><td>본 연구</td></tr>
+      </tbody></table></div>
+      <p class="small muted">열 부담 0~100: 35 주의 · 55 경고 · 75 대피. 법 기준·심박·체온·위험 증상이 있으면 점수와 관계없이 단계를 올려요.</p>
+    </div>
+    <div id="a-diff" class="card" hidden>
+      <h2>선행연구와 다른 점</h2>
+      <div class="tbl"><table><thead><tr><th>선행연구</th><th>휴식벨트</th></tr></thead><tbody>
+        <tr><td>정답 데이터가 필요한 AI (Ullah &amp; Khan, 2026)</td><td><b>워치 심박으로 내 평소 범위를 자동 학습</b></td></tr>
+        <tr><td>스마트밴드 등 전용 기기 필수 (Kim 외, 2020)</td><td><b>워치가 없어도 폰만으로 동작</b></td></tr>
+        <tr><td>모든 사람에게 같은 체감온도 기준</td><td><b>민감군·오늘 컨디션으로 사람마다 다른 기준</b></td></tr>
+        <tr><td>2025년 법 개정 이전</td><td><b>33·35·38℃ 법정 휴식 자동 관리</b></td></tr>
+        <tr><td>주로 옥외 현장</td><td><b>실내·반밀폐 현장 온습도 기준</b></td></tr>
+        <tr><td>긴급 시 앱 조작 필요</td><td><b>흔들기·쓰러짐 감지·잠금화면 SOS</b></td></tr>
+      </tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ===== 설정 ===== -->
+  <section id="v-set" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="pagehead"><h1>설정</h1></div>
+    <div class="card">
+      <h2>스마트워치</h2>
+      <div class="seg" id="setMode"><button type="button" data-m="watch" aria-pressed="false">워치 있음</button><button type="button" data-m="phone" aria-pressed="true">폰만 사용</button></div>
+      <div class="note" id="watchStatus"></div>
+      <div id="watchArea" style="display:flex;flex-direction:column;gap:10px">
+        <div class="field"><label for="watchType">내 워치 종류</label><select id="watchType">
+          <option value="garmin">가민·폴라·어메이즈핏 등</option><option value="wearos">갤럭시워치·픽셀워치</option><option value="apple">애플워치</option><option value="band">가슴 심박 벨트</option></select></div>
+        <div class="note" id="watchGuide"></div>
+        <div class="btns"><button class="btn ink" id="watchConnect" type="button">워치 연결하기</button><button class="btn" id="watchVirtual" type="button">시연용 워치</button></div>
+        <p class="small" id="watchMsg"></p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>긴급 구조 요청</h2>
+      <div class="switch"><span>세게 흔들면 구조 요청<small>휴대폰을 5번 세게 흔들면 5초 뒤 요청해요</small></span><input type="checkbox" id="sShake" aria-label="흔들어 구조 요청"></div>
+      <div class="switch"><span>쓰러짐·무동작 감지<small>충격 뒤 움직임이 없으면 안부를 물어요</small></span><input type="checkbox" id="sFall" aria-label="쓰러짐 감지"></div>
+      <div class="note"><b>앱을 열지 않고 요청하기</b><br>홈 화면의 휴식벨트 아이콘을 <b>길게 누르면</b> "구조 요청" 바로가기가 나와요. 로그인 화면에도 구조 요청 버튼이 있어요.</div>
+      <button class="btn line" id="fallTest" type="button">안부 확인 시험해 보기</button>
+    </div>
+    <div class="card">
+      <h2>내 정보</h2>
+      <div class="grid2">
+        <div class="field"><label for="pNick">별명</label><input id="pNick" type="text" maxlength="10"></div>
+        <div class="field"><label for="pAge">나이</label><input id="pAge" type="number" inputmode="numeric" min="18" max="85"></div>
+      </div>
+      <div class="field"><label for="pAccl">현장 투입</label><select id="pAccl"><option value="new">1주 안 됨</option><option value="ok">1주 넘음</option></select></div>
+      <div class="field"><label for="pWork">주로 하는 작업</label><select id="pWork"><option value="1">가벼운 작업</option><option value="2">보통 작업</option><option value="3">무거운 작업</option></select></div>
+      <label class="chk"><input type="checkbox" id="pCond">고혈압·당뇨·심장 질환</label>
+      <label class="chk"><input type="checkbox" id="pHist">온열질환을 겪은 적 있음</label>
+      <label class="chk"><input type="checkbox" id="pCool">쿨조끼 등 보냉장구 착용</label>
+    </div>
+    <div class="card">
+      <h2>연락처</h2>
+      <div class="field"><label for="mPhone">현장 관리자 휴대폰</label><input id="mPhone" type="tel" inputmode="tel" maxlength="15" placeholder="010-0000-0000"></div>
+      <div class="field"><label for="bPhone">함께 일하는 동료 (2인 1조)</label><input id="bPhone" type="tel" inputmode="tel" maxlength="15" placeholder="선택"></div>
+    </div>
+    <div class="card">
+      <h2>로그인</h2>
+      <div class="btns"><button class="btn" id="myQr" type="button">내 QR 로그인 카드</button><button class="btn" id="chPin" type="button">비밀번호 바꾸기</button></div>
+      <button class="btn line" id="lockNow" type="button">잠그기 · 다른 사람으로 바꾸기</button>
+    </div>
+    <div class="card">
+      <h2>알림과 화면</h2>
+      <div class="switch"><span>음성 안내</span><input type="checkbox" id="sVoice" aria-label="음성 안내"></div>
+      <div class="switch"><span>진동</span><input type="checkbox" id="sVib" aria-label="진동"></div>
+      <div class="switch"><span>움직이면 작업 자동 시작</span><input type="checkbox" id="sAuto" aria-label="작업 자동 시작"></div>
+      <div class="switch"><span>작업 중 화면 켜두기</span><input type="checkbox" id="sWake" aria-label="화면 켜두기"></div>
+      <div class="switch"><span>더 큰 글씨</span><input type="checkbox" id="sBig" aria-label="더 큰 글씨"></div>
+      <button class="btn line" id="voiceTest" type="button">알림 소리 들어보기</button>
+    </div>
+    <div class="card">
+      <h2>휴대폰에 설치하기</h2>
+      <div class="note" id="installState"></div>
+      <div class="wstep"><b class="n">1</b><span><b>안드로이드</b>: 크롬으로 열기 → ⋮ → <b>앱 설치</b> 또는 <b>홈 화면에 추가</b></span></div>
+      <div class="wstep"><b class="n">2</b><span><b>아이폰</b>: 사파리로 열기 → 공유 → <b>홈 화면에 추가</b> (워치 연결은 <b>Bluefy</b> 브라우저 필요)</span></div>
+      <div class="wstep"><b class="n">3</b><span>처음 열 때 <b>카메라·동작 센서·알림·블루투스</b>를 모두 허용</span></div>
+      <button class="btn ink" id="installBtn" type="button" hidden>지금 앱 설치</button>
+    </div>
+    <div class="card">
+      <h2>발표 시연</h2>
+      <p class="small muted">2시간 작업을 1분으로 빠르게 보여줘요. 58세·고혈압·투입 첫 주 근로자를 가정하며, 실제 기록에는 남지 않아요.</p>
+      <div class="btns"><button class="btn ink" id="simPhone" type="button">폰만 사용 시연</button><button class="btn ink" id="simWatch" type="button">워치 사용 시연</button></div>
+      <button class="btn sm line danger" id="delMe" type="button">이 사용자 삭제</button>
+    </div>
+  </section>
+</div>
+
+<nav class="nav" id="nav" hidden aria-label="화면 이동"><div class="in">
+  <button class="navb" type="button" data-v="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
+  <button class="navb" type="button" data-v="rep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>기록</button>
+  <button class="navb sosn" type="button" id="navSos"><b>SOS</b>구조 요청</button>
+  <button class="navb" type="button" data-v="ana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/></svg>근거</button>
+  <button class="navb" type="button" data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정</button>
+</div></nav>
+
+<!-- 잠금(로그인) -->
+<div class="ov" id="lockOv" hidden><div class="sheet">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+    <svg viewBox="0 0 140 140" id="lockMascot" style="width:110px;height:110px" aria-hidden="true"></svg>
+    <h2 class="slogan" style="font-size:24px">차에서는 <span>안전벨트</span>,<br>현장에서는 <em>휴식벨트</em></h2><p class="muted" id="lockSub">누구세요? 내 이름을 누르세요</p>
+  </div>
+  <div class="lockv" id="userList"></div>
+  <div class="btns"><button class="btn" id="qrLogin" type="button">QR로 로그인</button><button class="btn" id="newUser" type="button">새로 등록</button></div>
+  <button class="bigbtn" id="lockSos" type="button" style="background:var(--sos);margin-top:8px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.8L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z"/></svg>긴급 구조 요청</button>
+  <p class="small muted" style="text-align:center">구조 요청은 로그인하지 않아도 바로 쓸 수 있어요</p>
+</div></div>
+
+<!-- 비밀번호 -->
+<div class="ov" id="pinOv" hidden><div class="sheet">
+  <div class="row"><span></span><button class="x" id="pinClose" type="button" aria-label="닫기">✕</button></div>
+  <div style="text-align:center;display:flex;flex-direction:column;gap:6px"><h2 id="pinTitle">비밀번호</h2><p class="muted" id="pinSub">숫자 4자리를 누르세요</p></div>
+  <div class="pindots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+  <p id="pinMsg" style="text-align:center;color:var(--sos);font-weight:800;min-height:26px"></p>
+  <div class="keys" id="keys"></div>
+</div></div>
+
+<!-- QR 보기 -->
+<div class="ov" id="qrShowOv" hidden><div class="sheet">
+  <div class="row"><h2>내 QR 로그인 카드</h2><button class="x" data-close="qrShowOv" type="button" aria-label="닫기">✕</button></div>
+  <div class="qrbox" id="qrSvg"></div>
+  <p style="text-align:center;font-size:22px;font-weight:900" id="qrName"></p>
+  <div class="note">이 QR을 <b>캡처하거나 인쇄해서</b> 지니고 다니세요. 로그인 화면에서 "QR로 로그인"을 누르고 비추면 비밀번호 없이 들어가요. 새 휴대폰에서 비추면 내 정보가 그대로 옮겨져요.<br><b>다른 사람에게 보여주지 마세요.</b></div>
+  <button class="btn ink" data-close="qrShowOv" type="button">확인</button>
+</div></div>
+
+<!-- QR 읽기 -->
+<div class="ov" id="qrScanOv" hidden><div class="sheet">
+  <div class="row"><h2>QR로 로그인</h2><button class="x" id="scanClose" type="button" aria-label="닫기">✕</button></div>
+  <div class="scan"><video id="scanVideo" playsinline muted></video></div>
+  <p id="scanMsg" style="text-align:center;font-weight:700">내 QR 로그인 카드를 네모 안에 비추세요</p>
+</div></div>
+
+<!-- 첫 등록 -->
+<div class="ov" id="obOv" hidden><div class="sheet">
+  <div class="steps" id="obSteps"><i></i><i></i><i></i><i></i><i></i></div>
+  <section data-s="0" style="display:flex;flex-direction:column;gap:14px">
+    <svg viewBox="0 0 140 140" id="obMascot" style="width:120px;height:120px;margin:0 auto" aria-hidden="true"></svg>
+    <h2 class="slogan">차에서는 <span>안전벨트</span>,<br>현장에서는 <em>휴식벨트</em></h2>
+    <p class="slogansub">쓰러지기 전에, 먼저 쉬게 합니다</p>
+    <div class="note" style="font-size:16px;line-height:1.8">✔ 폰을 지니고 일하면 <b>알아서 지켜봐요</b><br>✔ 내 나이·건강에 맞춘 <b>나만의 기준</b><br>✔ 위급하면 <b>흔들기만 해도 구조 요청</b></div>
+  </section>
+  <section data-s="1" hidden style="display:flex;flex-direction:column;gap:14px">
+    <span class="small muted" style="font-weight:800">1 / 4 · 내 이름과 비밀번호</span>
+    <h2>다른 사람이 못 들어오게<br>비밀번호를 정해요</h2>
+    <div class="field"><label for="oNick">별명 (현장에서 부르는 이름)</label><input id="oNick" type="text" maxlength="10" placeholder="예: 김반장"></div>
+    <div class="field"><label for="oPin">비밀번호 숫자 4자리</label><input id="oPin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="new-password" placeholder="● ● ● ●"></div>
+    <div class="field"><label for="oPin2">한 번 더 입력</label><input id="oPin2" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="new-password" placeholder="● ● ● ●"></div>
+    <p id="ob1Msg" style="color:var(--sos);font-weight:800"></p>
+  </section>
+  <section data-s="2" hidden style="display:flex;flex-direction:column;gap:12px">
+    <span class="small muted" style="font-weight:800">2 / 4 · 스마트워치</span>
+    <h2>스마트워치가 있나요?</h2>
+    <div role="radiogroup" aria-label="스마트워치" style="display:flex;flex-direction:column;gap:10px">
+      <button class="opt" type="button" role="radio" data-m="watch" aria-checked="false"><span class="oi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 6l1-3h4l1 3M9 18l1 3h4l1-3"/></svg></span><span><b>네, 있어요</b><small>심박을 워치에서 받아요</small></span><span class="rd"></span></button>
+      <button class="opt" type="button" role="radio" data-m="phone" aria-checked="true"><span class="oi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span><span><b>아니요, 폰만 있어요</b><small>폰 움직임으로 알아서 판단해요</small></span><span class="rd"></span></button>
+    </div>
+    <div id="obWatch" hidden style="display:flex;flex-direction:column;gap:10px">
+      <div class="field"><label for="oWatchType">워치 종류</label><select id="oWatchType"><option value="garmin">가민·폴라·어메이즈핏 등</option><option value="wearos">갤럭시워치·픽셀워치</option><option value="apple">애플워치</option><option value="band">가슴 심박 벨트</option></select></div>
+      <div class="note" id="obWatchGuide"></div>
+      <div class="btns"><button class="btn ink" id="obConnect" type="button">지금 연결</button><button class="btn" id="obVirtual" type="button">시연용 워치</button></div>
+      <p class="small" id="obConnMsg"></p>
+    </div>
+  </section>
+  <section data-s="3" hidden style="display:flex;flex-direction:column;gap:12px">
+    <span class="small muted" style="font-weight:800">3 / 4 · 나에게 맞는 기준</span>
+    <h2>나이와 건강을 알려주세요</h2>
+    <div class="field"><label for="oAge">나이</label><input id="oAge" type="number" inputmode="numeric" min="18" max="85" placeholder="예: 52"></div>
+    <label class="chk"><input type="checkbox" id="oNew">현장에 온 지 1주가 안 됐어요</label>
+    <label class="chk"><input type="checkbox" id="oCond">고혈압·당뇨·심장 질환이 있어요</label>
+    <label class="chk"><input type="checkbox" id="oHist">온열질환을 겪은 적이 있어요</label>
+    <label class="chk"><input type="checkbox" id="oHeavy">무거운 작업을 주로 해요</label>
+    <label class="chk"><input type="checkbox" id="oCool">쿨조끼 등 보냉장구를 입어요</label>
+    <div class="note ok" id="obPreview"></div>
+  </section>
+  <section data-s="4" hidden style="display:flex;flex-direction:column;gap:12px">
+    <span class="small muted" style="font-weight:800">4 / 4 · 위급할 때 연락할 사람</span>
+    <h2>구조 요청을 받을 번호</h2>
+    <div class="field"><label for="oMPhone">현장 관리자 휴대폰</label><input id="oMPhone" type="tel" inputmode="tel" maxlength="15" placeholder="010-0000-0000"></div>
+    <div class="field"><label for="oBPhone">함께 일하는 동료 (선택)</label><input id="oBPhone" type="tel" inputmode="tel" maxlength="15" placeholder="010-0000-0000"></div>
+    <p class="small muted">구조 요청 때 두 사람에게 위치가 담긴 문자를 보낼 수 있어요.</p>
+  </section>
+  <div class="btns"><button class="btn" id="obBack" type="button">이전</button><button class="btn brand" id="obNext" type="button">다음</button></div>
+  <button class="btn line" id="obCancel" type="button">처음 화면으로</button>
+</div></div>
+
+<!-- 작업 전 체크리스트 -->
+<div class="ov" id="ckOv" hidden><div class="sheet">
+  <div class="row"><h2>작업 전 체크리스트</h2><button class="x" data-close="ckOv" type="button" aria-label="닫기">✕</button></div>
+  <p class="muted">고용노동부 온열질환 예방 체크리스트를 근로자용으로 바꿨어요. 내 몸 상태는 오늘 나의 기준에 반영돼요.</p>
+  <div id="ckList" style="display:flex;flex-direction:column;gap:14px"></div>
+  <div class="note" id="ckResult"></div>
+  <button class="btn brand" id="ckDone" type="button">확인</button>
+</div></div>
+
+<!-- 증상 -->
+<div class="ov" id="symOv" hidden><div class="sheet">
+  <div class="row"><h2>지금 몸 상태는요?</h2><button class="x" data-close="symOv" type="button" aria-label="닫기">✕</button></div>
+  <p class="muted">해당하는 것을 모두 고르세요.</p>
+  <div id="symList" style="display:flex;flex-direction:column;gap:8px"></div>
+  <div class="btns"><button class="btn brand" id="symSave" type="button">확인</button><button class="btn green" id="symNone" type="button">괜찮아요</button></div>
+  <button class="btn line" id="symChat" type="button">채팅으로 물어보기</button>
+</div></div>
+
+<!-- 증상 상담 (카톡형 대화방) -->
+<div class="ov chatroom" id="chatOv" hidden>
+  <div class="chathead"><button class="back" id="chatBack" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div style="flex:1;min-width:0"><b>휴식벨트 상담</b><small id="chatSub">응급조치 안내 · 대화는 이 폰에만 저장돼요</small></div><button class="btn sm" id="chatClear" type="button" style="background:transparent;color:inherit">대화 지우기</button></div>
+  <div class="chatlog" id="chatLog"></div>
+  <div class="chatfoot"><div class="quick" id="chatQuick"></div>
+  <form class="chatbar" id="chatForm"><button class="mic" id="chatMic" type="button" aria-label="말로 입력"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><input id="chatIn" type="text" placeholder="증상을 적어주세요" autocomplete="off" enterkeyhint="send"><button class="send" type="submit" aria-label="보내기">전송</button></form></div>
+</div>
+
+<!-- 온도 바꾸기 -->
+<div class="ov" id="envOv" hidden><div class="sheet">
+  <div class="row"><h2>현장 온도·습도</h2><button class="x" data-close="envOv" type="button" aria-label="닫기">✕</button></div>
+  <p class="muted">현장의 온습도계 숫자를 넣으세요. 하루 한 번이면 돼요.</p>
+  <div class="btns" id="envPresets">
+    <button class="btn sm" type="button" data-ta="31.5" data-rh="75" data-place="지하층 마감">지하층 마감</button>
+    <button class="btn sm" type="button" data-ta="32" data-rh="65" data-place="밀폐 도장">밀폐 도장</button>
+    <button class="btn sm" type="button" data-ta="28" data-rh="55" data-place="실내 인테리어">실내 인테리어</button>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="ta">온도 (℃)</label><input id="ta" type="number" inputmode="decimal" step="0.5" min="0" max="50"></div>
+    <div class="field"><label for="rh">습도 (%)</label><input id="rh" type="number" inputmode="numeric" step="1" min="5" max="100"></div>
+  </div>
+  <div class="field"><label for="place">작업 장소</label><input id="place" type="text" maxlength="20"></div>
+  <div class="note"><span id="outLine">바깥 날씨와 비교할 수 있어요</span><br><button class="btn sm line" id="outFetch" type="button" style="margin-top:8px">바깥 날씨 불러오기</button></div>
+  <button class="btn brand" id="envSave" type="button">저장</button>
+</div></div>
+
+<!-- 대응요령 -->
+<div class="ov" id="guideOv" hidden><div class="sheet">
+  <div class="row"><h2>폭염 단계별 대응요령</h2><button class="x" data-close="guideOv" type="button" aria-label="닫기">✕</button></div>
+  <p class="muted" id="guideNow"></p>
+  <div class="guide-step" style="--c:var(--g)"><b>체감 31℃ 이상 · 폭염작업</b><ul><li>냉방·환기 장치 켜기</li><li>20분마다 물 한 컵</li><li>틈틈이 시원한 곳에서 쉬기</li></ul></div>
+  <div class="guide-step" style="--c:var(--y)"><b>체감 33℃ 이상 · 휴식 의무</b><ul><li>2시간마다 20분 이상 휴식 (또는 1시간마다 10분)</li><li>쉬기 어려우면 쿨조끼 등 보냉장구</li></ul></div>
+  <div class="guide-step" style="--c:var(--o)"><b>체감 35℃ 이상 · 폭염경보</b><ul><li>매시간 15분 이상 휴식</li><li>오후 2~5시 무리한 작업 피하기</li></ul></div>
+  <div class="guide-step" style="--c:var(--r)"><b>체감 38℃ 이상 · 폭염중대경보</b><ul><li>긴급한 작업 말고는 작업 중지</li><li>고령자·지병 있는 사람은 작업 제한</li></ul></div>
+  <div class="guide-step" style="--c:var(--sos)"><b>쓰러진 동료를 봤다면</b><ul><li><b>의식이 없으면</b>: 바로 119 → 시원한 곳으로 → 옷을 느슨하게 → 몸 식히기. <b>음료는 먹이지 마세요</b> (질식 위험)</li><li><b>의식이 있으면</b>: 시원한 곳 → 옷 느슨하게 → 물·이온음료 → 나아지지 않으면 119</li></ul></div>
+  <p class="tiny muted">출처: 산업안전보건기준 규칙(2025.7.17), 고용노동부 폭염 단계별 권고, 질병관리청 온열질환 예방 건강수칙</p>
+  <button class="btn ink" data-close="guideOv" type="button">확인</button>
+</div></div>
+
+<!-- 측정 -->
+<div class="ov" id="measOv" hidden><div class="sheet">
+  <div class="row"><h2>심박·체온 재기</h2><button class="x" id="measClose" type="button" aria-label="닫기">✕</button></div>
+  <div class="seg"><button type="button" id="mCam" aria-pressed="true">카메라로 심박</button><button type="button" id="mHand" aria-pressed="false">숫자로 입력</button></div>
+  <div class="card" id="camPane">
+    <p class="muted">뒷면 카메라와 플래시를 <b>검지 끝으로 살짝 덮고</b> 20초 동안 가만히 있으세요.</p>
+    <div class="cam" id="camBox"><video id="video" playsinline muted></video>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:0"><p id="camStatus" style="font-weight:700">시작을 누르면 카메라가 켜져요</p><div class="prog"><i id="camProg"></i></div><p class="small muted num" id="camLive"></p></div></div>
+    <canvas class="wave" id="wave" aria-label="맥박 신호"></canvas>
+    <div class="btns"><button class="btn brand" id="camStart" type="button">시작</button><button class="btn" id="camStop" type="button" hidden>멈추기</button></div>
+  </div>
+  <div class="card" id="handPane" hidden>
+    <div class="field"><label for="handBpm">심박수 (손목 맥박 15초 × 4)</label><input id="handBpm" type="number" inputmode="numeric" min="35" max="220" placeholder="예: 96"></div>
+    <button class="btn brand" id="handUse" type="button">이 값 쓰기</button>
+  </div>
+  <div class="card" id="resultPane" hidden>
+    <div class="result num" id="resBpm">–</div><p class="small muted" id="resQual"></p>
+    <div class="field"><label for="resTemp">체온 (선택, 귀 체온계)</label><input id="resTemp" type="number" inputmode="decimal" step="0.1" min="34" max="43" placeholder="예: 37.2"></div>
+    <button class="btn brand" id="resSave" type="button">저장</button>
+  </div>
+  <div class="card"><div class="field"><label for="onlyTemp">체온만 기록 (℃)</label><div style="display:flex;gap:8px"><input id="onlyTemp" type="number" inputmode="decimal" step="0.1" min="34" max="43" placeholder="예: 37.4" style="flex:1"><button class="btn brand" id="onlyTempSave" type="button">기록</button></div></div></div>
+</div></div>
+
+<!-- 휴식 -->
+<div class="ov rest" id="restOv" hidden><div class="sheet" style="text-align:center">
+  <span style="font-weight:900;font-size:16px" id="restKicker">강제 휴식</span>
+  <h2 id="restTitle">작업을 멈추고 쉬세요</h2>
+  <p class="muted" id="restReason"></p>
+  <div class="ring"><svg viewBox="0 0 220 220" aria-hidden="true"><circle cx="110" cy="110" r="96" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="14"/><circle id="restArc" cx="110" cy="110" r="96" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-dasharray="0 603.2"/></svg>
+    <div class="c"><div><div class="bigtime num" id="restTime">15:00</div><span class="muted" id="restLeft"></span></div></div></div>
+  <p style="font-weight:700">시원한 곳에 앉아서 물을 조금씩 드세요</p>
+  <div id="recBox" style="text-align:left"><div class="field"><label for="recBpm" id="recLabel">쉬고 1분 뒤 심박</label><div style="display:flex;gap:8px"><input id="recBpm" type="number" inputmode="numeric" min="35" max="220" placeholder="bpm" style="flex:1"><button class="btn white" id="recSave" type="button">기록</button></div></div></div>
+  <p class="muted" id="recMsg"></p>
+  <div class="btns"><button class="btn" id="restDrink" type="button">물 마셨어요</button><button class="btn dark" id="restSos" type="button">구조 요청</button></div>
+  <button class="btn white" id="restDone" type="button" hidden>작업으로 돌아가기</button>
+  <button class="btn" id="restEnd" type="button" hidden style="background:transparent;box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)">휴식 끝내기</button>
+</div></div>
+
+<!-- 구조 요청 카운트다운 -->
+<div class="ov red" id="countOv" hidden role="alertdialog" aria-labelledby="countTitle"><div class="sheet" style="text-align:center;gap:18px">
+  <h2 id="countTitle">구조 요청을 보냅니다</h2>
+  <p class="muted" id="countWhy"></p>
+  <div class="count num" id="countNum">5</div>
+  <button class="bigbtn white" id="countNow" type="button">지금 바로 요청</button>
+  <button class="bigbtn" id="countCancel" type="button">취소 · 괜찮아요</button>
+</div></div>
+
+<!-- 구조 요청 -->
+<div class="ov red" id="sosOv" hidden role="alertdialog" aria-labelledby="sosTitle"><div class="sheet" style="gap:12px">
+  <div style="text-align:center"><h2 id="sosTitle">구조 요청</h2><p class="muted" id="sosReason"></p></div>
+  <a class="bigbtn white" id="sosCall" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span id="sosCallTxt">관리자에게 전화</span></a>
+  <a class="bigbtn" id="sosSms" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 5h16v11H8l-4 4z"/></svg>위치 문자 보내기</a>
+  <a class="bigbtn dark" href="tel:119" target="_blank" rel="noopener">119 전화</a>
+  <button class="bigbtn" id="sirenBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span id="sirenTxt">사이렌 울려 주변에 알리기</span></button>
+  <pre class="sosmsg" id="sosMsg"></pre>
+  <button class="btn" id="sosClear" type="button" style="background:rgba(255,255,255,.95);color:var(--ink)">괜찮아요 · 요청 끝내기</button>
+</div></div>
+
+<!-- 안부 확인 -->
+<div class="ov dark" id="checkOv" hidden role="alertdialog" aria-labelledby="checkTitle"><div class="sheet" style="text-align:center;gap:16px">
+  <h2 id="checkTitle">괜찮으세요?</h2>
+  <p class="muted" id="checkWhy"></p><div class="count num" id="checkTime" style="font-size:110px">15</div>
+  <p class="muted">답이 없으면 구조 요청을 보내요</p>
+  <button class="bigbtn white" id="checkOk" type="button" style="color:var(--g)">괜찮아요</button>
+  <button class="bigbtn" id="checkSos" type="button" style="background:var(--sos)">도와주세요</button>
+</div></div>
+
+<div id="bubOv" hidden role="alertdialog" aria-labelledby="bubTitle"><div class="bub">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.3 3.8L2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0zM11 9h2v6h-2zm0 8h2v2h-2z"/></svg>
+  <b id="bubTitle">경고</b><p id="bubText"></p>
+  <button class="bubok" id="bubOk" type="button" aria-label="확인"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+</div></div>
+<div class="toast" id="toast" hidden></div>
+<div id="simBar" hidden><span id="simTxt">시연 중</span><button class="btn sm" id="simStop" type="button" style="background:#fff;color:#2a221d;min-height:36px">끝내기</button></div>
+
+<script>
+"use strict";
+/* 작은 QR 코드 생성기 (바이트 모드, 오류정정 L, 버전 1~10) */
+const QR=(()=>{
+  const ECC=[0,7,10,15,20,26,18,20,24,30,18],BLK=[0,1,1,1,1,1,2,2,2,2,4];
+  const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r};
+  const dataCw=v=>Math.floor(raw(v)/8)-ECC[v]*BLK[v];
+  const mul=(x,y)=>{let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11d);z^=((y>>>i)&1)*x}return z};
+  function divisor(d){const r=new Array(d).fill(0);r[d-1]=1;let root=1;for(let i=0;i<d;i++){for(let j=0;j<d;j++){r[j]=mul(r[j],root);if(j+1<d)r[j]^=r[j+1]}root=mul(root,2)}return r}
+  function rem(data,div){const r=new Array(div.length).fill(0);for(const b of data){const f=b^r.shift();r.push(0);div.forEach((c,i)=>r[i]^=mul(c,f))}return r}
+  function make(text){
+    const bytes=[...new TextEncoder().encode(text)];let v=1;
+    for(;v<=10;v++){const cc=v<10?8:16;if(4+cc+bytes.length*8<=dataCw(v)*8)break}
+    if(v>10)throw new Error("too long");
+    const cap=dataCw(v)*8,bits=[];const put=(val,n)=>{for(let i=n-1;i>=0;i--)bits.push((val>>>i)&1)};
+    put(4,4);put(bytes.length,v<10?8:16);bytes.forEach(b=>put(b,8));put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+    for(let p=0xec;bits.length<cap;p^=0xec^0x11)put(p,8);
+    const data=[];for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=b<<1|bits[i+j];data.push(b)}
+    const nb=BLK[v],el=ECC[v],rc=Math.floor(raw(v)/8),ns=nb-rc%nb,sl=Math.floor(rc/nb),dv=divisor(el),blocks=[];
+    for(let i=0,k=0;i<nb;i++){const dat=data.slice(k,k+sl-el+(i<ns?0:1));k+=dat.length;const e=rem(dat,dv);if(i<ns)dat.push(0);blocks.push(dat.concat(e))}
+    const cw=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-el||j>=ns)cw.push(b[i])});
+    const N=v*4+17,M=[...Array(N)].map(()=>new Array(N).fill(false)),F=[...Array(N)].map(()=>new Array(N).fill(false));
+    const set=(x,y,d)=>{M[y][x]=d;F[y][x]=true};
+    for(let i=0;i<N;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+    const finder=(x,y)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),xx=x+dx,yy=y+dy;if(xx>=0&&xx<N&&yy>=0&&yy<N)set(xx,yy,d!==2&&d!==4)}};
+    finder(3,3);finder(N-4,3);finder(3,N-4);
+    if(v>1){const n=Math.floor(v/7)+2,step=Math.ceil((v*4+4)/(n*2-2))*2,pos=[6];for(let p=N-7;pos.length<n;p-=step)pos.splice(1,0,p);
+      pos.forEach((a,i)=>pos.forEach((b,j)=>{if((i===0&&j===0)||(i===0&&j===n-1)||(i===n-1&&j===0))return;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(a+dx,b+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}))}
+    const fmt=mask=>{const d=(1<<3)|mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const b=((d<<10)|r)^0x5412,g=i=>((b>>>i)&1)===1;
+      for(let i=0;i<=5;i++)set(8,i,g(i));set(8,7,g(6));set(8,8,g(7));set(7,8,g(8));for(let i=9;i<15;i++)set(14-i,8,g(i));
+      for(let i=0;i<8;i++)set(N-1-i,8,g(i));for(let i=8;i<15;i++)set(8,N-15+i,g(i));set(8,N-8,true)};
+    fmt(0);
+    if(v>=7){let r=v;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1f25);const b=v<<12|r;for(let i=0;i<18;i++){const bit=((b>>>i)&1)===1,a=N-11+i%3,c=Math.floor(i/3);set(a,c,bit);set(c,a,bit)}}
+    let i=0;for(let right=N-1;right>=1;right-=2){if(right===6)right=5;for(let vert=0;vert<N;vert++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?N-1-vert:vert;
+      if(!F[y][x]&&i<cw.length*8){M[y][x]=((cw[i>>>3]>>>(7-(i&7)))&1)===1;i++}}}
+    const mask=2;for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!F[y][x]&&x%3===0)M[y][x]=!M[y][x];
+    fmt(mask);return M}
+  function svg(text,px){const M=make(text),N=M.length,q=4;let d="";for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(M[y][x])d+=`M${x+q} ${y+q}h1v1h-1z`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${N+q*2} ${N+q*2}" width="${px||220}" height="${px||220}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+  return{make,svg}})();
+
+let SIM=null;const now=()=>SIM?SIM.v0+(performance.now()-SIM.r0)*SIM.speed:Date.now();
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const pad=n=>String(n).padStart(2,"0");
+const hhmm=t=>{const d=new Date(t);return pad(d.getHours())+":"+pad(d.getMinutes())};
+const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+":"+pad(s%60)};
+const minsTxt=m=>m>=60?`${Math.floor(m/60)}시간 ${Math.round(m%60)}분`:`${Math.max(0,Math.round(m))}분`;
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cssv=n=>getComputedStyle(document.body).getPropertyValue(n).trim();
+const clone=o=>JSON.parse(JSON.stringify(o));
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+let toastT=0;function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2400)}
+
+/* ============ 사용자 (이 휴대폰 안에만 저장) ============ */
+const UK="ys6.users",DK="ys6.dev";
+let USERS=ls.get(UK)||[],DEV=Object.assign({shake:true,last:null},ls.get(DK)||{}),UID=null;
+const saveUsers=()=>ls.set(UK,USERS),saveDev=()=>ls.set(DK,DEV);
+const DEF={mode:"phone",watchType:"garmin",device:null,
+  profile:{nick:"",age:50,accl:"ok",work:2,cond:false,hist:false,cool:false},contact:{mgr:"",buddy:""},
+  settings:{voice:true,vibrate:true,autoWork:true,wake:true,big:false,fall:true,remindWater:20},
+  env:{ta:31.5,rh:75,place:"지하층 마감",ota:null,orh:null},ck:null,chat:[],
+  base:[],samples:[],events:[],water:[],rests:[],manual:[],sym:null,rest:null,workStart:null,lastRestEnd:null,strain:5,lastAlarmK:0,cooldownUntil:0,wateredFor:null,myFor:null,sos:null};
+function loadData(id){const o=ls.get("ys6.d."+id);const s=Object.assign(clone(DEF),o||{});["profile","contact","settings","env"].forEach(k=>s[k]=Object.assign(clone(DEF[k]),(o&&o[k])||{}));return s}
+let S=clone(DEF),BACKUP=null;
+function save(){if(SIM||!UID)return;ls.set("ys6.d."+UID,S)}
+function logEvent(type,text){S.events.push({at:now(),type,text});if(S.events.length>600)S.events.shift();save()}
+async function hashPin(pin,id){const txt="yeolswim|"+id+"|"+pin;try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){let h=5381;for(const c of txt)h=((h<<5)+h+c.charCodeAt(0))>>>0;return "d"+h.toString(16)}}
+const rid=n=>{const a=new Uint8Array(n);(crypto.getRandomValues?crypto.getRandomValues(a):a.forEach((_,i)=>a[i]=Math.random()*256));return [...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,n*1.5|0)};
+
+/* ============ 기상청 체감온도 · 법 기준 · 나의 기준 ============ */
+function wetBulb(T,RH){return T*Math.atan(0.151977*Math.sqrt(RH+8.313659))+Math.atan(T+RH)-Math.atan(RH-1.676331)+0.00391838*Math.pow(RH,1.5)*Math.atan(0.023101*RH)-4.686035}
+function feels(T,RH){const w=wetBulb(T,RH);return -0.2442+0.55399*w+0.45535*T-0.0022*w*w+0.00278*w*T+3.0}
+const curAt=()=>feels(+S.env.ta,+S.env.rh);
+function envStage(at){return at>=38?3:at>=35?2:at>=33?1:at>=31?0:-1}
+const STAGE_NAME={"-1":"폭염 기준 아래","0":"폭염작업 (31℃↑)","1":"휴식 의무 (33℃↑)","2":"폭염경보 수준 (35℃↑)","3":"작업중지 권고 (38℃↑)"};
+const STAGE_C={"-1":"--g","0":"--g","1":"--y","2":"--o","3":"--r"};
+function lawRule(at){const st=envStage(at);
+  if(st===3)return{st,stop:true,every:0,min:20,text:"긴급 작업 외 작업중지"};
+  if(st===2)return{st,every:60,min:15,text:"매시간 15분 휴식"};
+  if(st===1)return{st,every:120,min:20,text:"2시간마다 20분 휴식"};
+  if(st===0)return{st,every:0,min:0,text:"틈틈이 휴식·물"};
+  return{st,every:0,min:0,text:"기준 아래"}}
+const todayKey=()=>{const d=new Date(now());return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+const CK=[
+  {g:"내 몸 상태",items:[{id:"sleep",t:"어젯밤 잠은 충분히 잤나요?",body:1},{id:"drink",t:"어제 술을 마시지 않았나요?",body:1},{id:"meal",t:"아침밥을 먹었나요?",body:1},{id:"sick",t:"감기·몸살·설사 없이 괜찮나요?",body:1}]},
+  {g:"작업 준비",items:[{id:"water",t:"시원한 물이나 이온음료를 챙겼나요?"},{id:"shade",t:"쉴 수 있는 시원한 곳을 알고 있나요?"},{id:"buddy",t:"함께 일하는 동료(2인 1조)가 있나요?"},{id:"gear",t:"쿨조끼·냉각 스카프 등을 준비했나요?"}]},
+  {g:"작업 환경",items:[{id:"thermo",t:"현장에 온습도계가 있고 확인했나요?",s:"실내는 안전공단 체감온도 산출시스템으로도 확인"},{id:"fan",t:"환기·선풍기·이동식 에어컨이 켜져 있나요?"},{id:"tbm",t:"오늘 TBM에서 온열질환 교육을 들었나요?"}]}];
+const ckToday=()=>S.ck&&S.ck.day===todayKey()?S.ck:null;
+/* 나이 보정: 나이가 들수록 땀·혈관 반응이 느려져 열을 덜 내보낸다 (고용노동부 민감군: 고령자) */
+function ageStep(a){a=+a||0;return a>=65?2.5:a>=60?2:a>=55?1.5:a>=50?1:a>=40?0.5:0}
+const PT=0.75; // 1점 = 0.75℃
+function personal(p,ck){p=p||S.profile;const items=[];
+  const as=ageStep(p.age);if(as)items.push({t:`나이 ${p.age}세`,pt:as,age:1});
+  if(p.accl==="new")items.push({t:"투입 첫 주",pt:1});
+  if(p.cond)items.push({t:"고혈압·당뇨·심장",pt:1});
+  if(p.hist)items.push({t:"온열질환 경험",pt:1});
+  if(+p.work===3)items.push({t:"무거운 작업",pt:1});
+  const c=ck===undefined?ckToday():ck;if(c){const bad=CK[0].items.filter(i=>c.a[i.id]==="n").length;if(bad)items.push({t:`오늘 컨디션 ${bad}개`,pt:bad})}
+  if(p.cool)items.push({t:"보냉장구",pt:-1});
+  const pts=Math.max(0,items.reduce((a,i)=>a+i.pt,0)),delta=Math.min(3,pts*PT);
+  return{pts,delta,items,ageD:as*PT,reasons:items.map(i=>`${i.t} ${i.pt>0?"+":"−"}${Math.abs(i.pt*PT).toFixed(1)}℃`),sensitive:pts>=2||(+p.age>=55)}}
+const myAt=()=>curAt()+personal().delta;
+function myRule(){const P=personal(),r=lawRule(myAt()),law=lawRule(curAt());let out={...r};
+  if(r.st===1&&P.sensitive)out={...r,every:60,min:10,text:"1시간마다 10분 휴식"};
+  if(r.st===3)out={...r,text:"작업을 멈추고 쉬기"};
+  if(law.every&&out.every&&law.every<out.every)out={...law};return out}
+const coreLimit=()=>S.profile.accl==="new"?38.0:38.5;
+
+/* ============ 단계 ============ */
+const LV=[{k:0,n:"정상",c:"--g",min:0},{k:1,n:"주의",c:"--y",min:35},{k:2,n:"경고",c:"--o",min:55},{k:3,n:"대피",c:"--r",min:75}];
+const lvOf=s=>LV.reduce((a,l)=>s>=l.min?l:a,LV[0]);
+const REST_MIN=[0,0,15,20];
+const LV_SAY=["지금처럼 일해도 괜찮아요","물 마시고 천천히 하세요","일을 멈추고 15분 쉬세요","바로 시원한 곳으로 가세요"];
+const LV_VOICE=["","주의 단계입니다. 물을 마시고 천천히 일하세요.","경고 단계입니다. 일을 멈추고 15분 쉬세요.","대피 단계입니다. 바로 시원한 곳으로 이동하세요."];
+
+/* ============ 마스코트 ============ */
+function mascotSVG(k){
+  const body={idle:"#fff3e4",0:"#e8f6ec",1:"#fff2c9",2:"#ffe2cc",3:"#ffd9d6"}[k]??"#fff3e4";
+  let eyes,mouth,extra="";
+  if(k===3){eyes='<path d="M50 72l10 10M60 72l-10 10M80 72l10 10M90 72l-10 10" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>';mouth='<ellipse cx="70" cy="97" rx="7" ry="9" fill="#2a221d"/>';extra='<path d="M108 52c4 8 4 14 0 18-4-4-4-10 0-18z" fill="#5ab2ff"/><path d="M24 62c3 6 3 10 0 13-3-3-3-7 0-13z" fill="#5ab2ff"/>'}
+  else if(k===2){eyes='<circle cx="55" cy="78" r="5.5" fill="#2a221d"/><circle cx="85" cy="78" r="5.5" fill="#2a221d"/><path d="M46 68l14 4M94 68l-14 4" stroke="#2a221d" stroke-width="3.5" stroke-linecap="round"/>';mouth='<path d="M58 99q12-9 24 0" fill="none" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>';extra='<path d="M108 56c4 8 4 14 0 18-4-4-4-10 0-18z" fill="#5ab2ff"/>'}
+  else if(k===1){eyes='<circle cx="55" cy="78" r="5.5" fill="#2a221d"/><circle cx="85" cy="78" r="5.5" fill="#2a221d"/>';mouth='<path d="M60 97h20" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>';extra='<path d="M106 60c3 6 3 10 0 13-3-3-3-7 0-13z" fill="#5ab2ff"/>'}
+  else if(k===0){eyes='<path d="M49 79q6-7 12 0M79 79q6-7 12 0" fill="none" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>';mouth='<path d="M58 93q12 12 24 0" fill="none" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>'}
+  else{eyes='<circle cx="55" cy="78" r="5.5" fill="#2a221d"/><circle cx="85" cy="78" r="5.5" fill="#2a221d"/><circle cx="57" cy="76" r="1.8" fill="#fff"/><circle cx="87" cy="76" r="1.8" fill="#fff"/>';mouth='<path d="M62 94q8 7 16 0" fill="none" stroke="#2a221d" stroke-width="4" stroke-linecap="round"/>'}
+  return `<ellipse cx="70" cy="130" rx="38" ry="6" fill="rgba(0,0,0,.1)"/>
+  <path d="M70 34c26 0 44 20 44 50 0 26-19 42-44 42S26 110 26 84c0-30 18-50 44-50z" fill="${body}" stroke="#2a221d" stroke-width="3.5"/>
+  <path d="M28 52c0-20 19-34 42-34s42 14 42 34z" fill="#ffffff" stroke="#2a221d" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M20 54h100" stroke="#2a221d" stroke-width="6" stroke-linecap="round"/><path d="M20 54h100" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="70" cy="34" r="8" fill="#fff" stroke="#2a221d" stroke-width="2.5"/><path d="M70 30v8M66 34h8" stroke="#2f9e5c" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="47" cy="90" rx="7" ry="4.5" fill="#ffaaa0" opacity=".8"/><ellipse cx="93" cy="90" rx="7" ry="4.5" fill="#ffaaa0" opacity=".8"/>${eyes}${mouth}${extra}`}
+
+/* ============ 센서: 폰 움직임 · 흔들기 ============ */
+const motion={listening:false,acc:0,n:0,secs:[],lastEvent:0,impactAt:0,stillSince:Date.now(),peaks:[],lastPeak:0};
+function onMotion(e){const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const mag=Math.hypot(a.x,a.y,a.z),d=Math.abs(mag-9.81),t=Date.now();
+  motion.acc+=d;motion.n++;motion.lastEvent=t;if(d>0.8)motion.stillSince=t;
+  if(mag>25&&!countdown.on)motion.impactAt=t;
+  if(DEV.shake&&d>15&&t-motion.lastPeak>180){motion.lastPeak=t;motion.peaks=motion.peaks.filter(p=>t-p<2500);motion.peaks.push(t);
+    if(motion.peaks.length>=5&&!countdown.on&&$("sosOv").hidden){motion.peaks=[];motion.impactAt=0;startCountdown("휴대폰을 세게 흔들어 요청했어요")}}}
+async function startMotion(){try{if(typeof DeviceMotionEvent!=="undefined"&&typeof DeviceMotionEvent.requestPermission==="function"){const r=await DeviceMotionEvent.requestPermission();if(r!=="granted")return false}}catch(e){}
+  if(!motion.listening){window.addEventListener("devicemotion",onMotion);motion.listening=true}return true}
+const motionLive=()=>Date.now()-motion.lastEvent<3000;
+function motionTick(){const v=motion.n?motion.acc/motion.n:0;motion.acc=0;motion.n=0;if(motionLive()){motion.secs.push(v);if(motion.secs.length>120)motion.secs.shift()}}
+function actLevel(){if(SIM)return SIM.act;if(VW.on)return VW.act;if(!motionLive()||motion.secs.length<5)return null;const w=motion.secs.slice(-60),m=w.reduce((s,x)=>s+x,0)/w.length;return m<0.25?0:m<0.8?1:m<1.8?2:3}
+const ACT_NAME=["쉬는 중","가벼움","보통","무거움"];
+
+/* ============ 센서: 워치 심박 (블루투스 표준 심박) ============ */
+const hr={dev:null,hist:[],last:0};const VW={on:false,hr:88,act:1};
+function hrNow(){if(SIM)return SIM.hr;return hr.hist.length&&Date.now()-hr.last<15000?hr.hist[hr.hist.length-1].v:null}
+function hrAvg(sec){const t=SIM?now():Date.now(),a=hr.hist.filter(h=>t-h.t<=sec*1000);return a.length?a.reduce((s,h)=>s+h.v,0)/a.length:null}
+function pushHr(v,t){hr.hist.push({t:t??Date.now(),v});hr.last=Date.now();if(hr.hist.length>1500)hr.hist.shift()}
+const watchLive=()=>SIM?SIM.mode==="watch":(S.mode==="watch"&&hrNow()!=null);
+function btSupport(){
+  if(!window.isSecureContext)return{ok:false,why:"https 주소에서만 연결돼요. GitHub 주소로 연 앱에서 연결해 주세요."};
+  if(!navigator.bluetooth){const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);
+    return{ok:false,why:ios?"아이폰 사파리는 워치 연결을 지원하지 않아요. App Store의 Bluefy 브라우저로 앱 주소를 열어주세요.":"이 화면에서는 워치를 연결할 수 없어요. 안드로이드 크롬으로 연 앱(홈 화면에 설치한 휴식벨트)에서 연결해 주세요. Claude 미리보기 화면에서는 막혀 있어요."}}
+  return{ok:true}}
+async function connectWatch(say){
+  const sup=btSupport();if(!sup.ok){say(sup.why,"warn");return false}
+  try{if(navigator.bluetooth.getAvailability&&!(await navigator.bluetooth.getAvailability())){say("휴대폰 블루투스가 꺼져 있어요. 켜고 다시 눌러주세요.","warn");return false}}catch(e){}
+  say("주변 기기를 찾는 중이에요. 목록에서 내 워치를 고르세요.");
+  try{const dev=await navigator.bluetooth.requestDevice({filters:[{services:["heart_rate"]}],optionalServices:["battery_service"]});
+    hr.dev=dev;dev.addEventListener("gattserverdisconnected",()=>{logEvent("device","워치 연결 끊김 · 다시 연결 시도");setTimeout(reconnect,3000)});
+    say("연결하는 중…");await attach(dev);VW.on=false;S.device={name:dev.name||"심박 기기"};S.mode="watch";save();
+    say(`${S.device.name} 연결 완료! 심박을 받고 있어요.`,"ok");logEvent("device",`워치 연결 · ${S.device.name}`);renderAll();return true}
+  catch(e){const n=e&&e.name;
+    say(n==="NotFoundError"?"목록에 워치가 없거나 취소했어요. 워치에서 심박 방송을 먼저 켜고 다시 눌러주세요.":n==="SecurityError"?"이 화면에서는 블루투스가 막혀 있어요. 설치한 앱에서 연결해 주세요.":n==="NetworkError"?"워치와 연결이 끊겼어요. 가까이 두고 다시 해주세요.":"연결하지 못했어요. 워치의 심박 방송을 켜고 다시 해주세요.","warn");return false}}
+async function attach(dev){const srv=await dev.gatt.connect(),svc=await srv.getPrimaryService("heart_rate"),ch=await svc.getCharacteristic("heart_rate_measurement");
+  ch.addEventListener("characteristicvaluechanged",e=>{const d=e.target.value,f=d.getUint8(0),v=(f&1)?d.getUint16(1,true):d.getUint8(1);if(v>30&&v<230)pushHr(v)});await ch.startNotifications()}
+async function reconnect(){if(!hr.dev||hr.dev.gatt.connected)return;try{await attach(hr.dev);logEvent("device","워치 다시 연결됨")}catch(e){setTimeout(reconnect,10000)}}
+function startVirtual(){VW.on=true;VW.hr=86;pushHr(86);S.mode="watch";S.device={name:"시연용 워치",virtual:true};save();logEvent("device","시연용 워치 연결");renderAll()}
+function virtualTick(){if(!VW.on||SIM)return;const working=!!S.workStart&&!S.rest;VW.act=working?2:0;
+  const heat=Math.max(0,myAt()-27),m=working?(Date.now()-S.workStart)/60000:0,tgt=84+(working?22:0)+heat*1.8*Math.min(1,m/30)*(working?1:0.3);
+  VW.hr+=(tgt-VW.hr)*0.04+(Math.random()-0.5)*2;pushHr(Math.round(VW.hr))}
+const WATCH_GUIDE={
+  garmin:"워치 설정에서 <b>심박 방송(Broadcast Heart Rate)</b>을 켜고 <b>워치 연결하기</b>를 누르세요.",
+  wearos:"갤럭시워치·픽셀워치는 기본으로 심박을 내보내지 않아요.<br>① 갤럭시워치: 워치에 <b>Heart for Bluetooth</b> 같은 심박 방송 앱 설치 후 시작<br>② 픽셀워치: <b>연결된 피트니스</b> 켜기<br>③ <b>워치 연결하기</b> 누르기",
+  apple:"애플워치는 기본으로 심박을 내보내지 않아요.<br>① <b>HeartCast</b>·<b>HR Broadcast</b> 같은 심박 방송 앱 설치 후 시작<br>② 아이폰은 <b>Bluefy</b> 브라우저로 앱 열기<br>③ <b>워치 연결하기</b> 누르기",
+  band:"벨트를 차고 켠 다음 <b>워치 연결하기</b>를 누르세요."};
+
+/* ============ 판단 엔진 ============ */
+function baseStats(){const v=S.base.map(b=>b.bpm),n=v.length;if(!n)return{n:0,ready:false};const m=v.reduce((s,x)=>s+x,0)/n,sd=n>1?Math.sqrt(v.reduce((s,x)=>s+(x-m)**2,0)/(n-1)):0;return{n,m,sd,ready:n>=5}}
+const SYMS=[{id:"faint",t:"정신이 흐리거나 말이 잘 안 나와요",s:3},{id:"dry",t:"땀이 안 나고 피부가 뜨거워요",s:3},{id:"seize",t:"경련이 있거나 쓰러질 것 같아요",s:3},
+  {id:"dizzy",t:"어지러워요",s:2},{id:"head",t:"머리가 아파요",s:2},{id:"nausea",t:"속이 메스꺼워요",s:2},{id:"cramp",t:"근육에 쥐가 나요",s:2},{id:"tired",t:"평소보다 너무 지쳐요",s:2},
+  {id:"thirst",t:"목이 많이 말라요",s:1},{id:"sweat",t:"땀을 아주 많이 흘려요",s:1}];
+let EVAL={score:5,lv:LV[0],env:0,act:0,per:0,checks:[],flags:[],mode:"phone",actIdx:null};
+function evaluate(dtMin){
+  const at=curAt(),P=personal(),mat=at+P.delta,act=actLevel(),working=!!S.workStart&&!S.rest;
+  const envF=clamp((mat-25)/13,0,1.25),actIdx=act??+S.profile.work,actF=working?[0.15,0.45,0.75,1][actIdx]:0.15;
+  const target=clamp(100*envF*(0.35+0.65*actF),0,100);
+  if(dtMin>0){const tau=target>S.strain?20:12;S.strain+=(target-S.strain)*(1-Math.exp(-dtMin/tau))}
+  const checks=[],flags=[];let score,mode="phone";
+  const envPts=Math.round(clamp((at-25)/13,0,1)*40),perPts=Math.round(P.delta/3*30);let actPts=Math.round(actF*30);
+  if(watchLive()){mode="watch";const h2=hrAvg(120)??hrNow(),h5=hrAvg(300),h1=hrAvg(60),b=baseStats(),age=+S.profile.age;
+    const boost=working?[0,10,22,34][actIdx]:0;let bio;
+    if(b.ready){const z=(h2-(b.m+boost))/Math.max(b.sd,7);bio=clamp(z*12,0,60)}else bio=clamp((h2/(220-age)*100-50)/40*60-boost*0.6,0,60);
+    bio*=1+P.delta*0.05;score=Math.round(Math.min(100,clamp((mat-28)/10*40,0,40)+bio));actPts=Math.round(clamp(bio/60,0,1)*30);
+    const lim=180-age,hit5=h5!=null&&h5>=lim,hit1=h1!=null&&h1>=lim;checks.push({t:`심박 ${lim} 아래`,hit:hit5||hit1});
+    if(hit5){score=Math.max(score,80);flags.push(`5분 평균 심박 ${Math.round(h5)}`)}else if(hit1){score=Math.max(score,58);flags.push(`심박 ${Math.round(h1)} (기준 ${lim})`)}}
+  else{score=Math.round(S.strain);checks.push({t:act==null?"움직임 센서 대기":`움직임 ${ACT_NAME[actIdx]}`,hit:false})}
+  const mt=S.manual.filter(m=>m.temp!=null&&now()-m.at<30*60000).pop();
+  checks.push({t:`체온 ${coreLimit()}℃ 아래`,hit:!!mt&&mt.temp>=coreLimit()});
+  if(mt){if(mt.temp>=coreLimit()){score=Math.max(score,80);flags.push(`체온 ${mt.temp}℃`)}else if(mt.temp>=coreLimit()-0.5){score=Math.max(score,58);flags.push(`체온 ${mt.temp}℃`)}}
+  const sy=S.sym&&now()-S.sym.at<30*60000?S.sym:null;
+  if(sy&&sy.sev>=1){score=Math.max(score,[0,38,58,82][sy.sev]);flags.push(`증상: ${sy.names.slice(0,2).join(", ")}${sy.names.length>2?" 외":""}`)}
+  checks.push({t:"위험 증상 없음",hit:!!sy&&sy.sev>=2});
+  if(working&&envStage(at)>=3){score=Math.max(score,60);flags.push("체감 38℃ 이상")}
+  EVAL={score,lv:lvOf(score),env:envPts,act:actPts,per:perPts,checks,flags,mode,actIdx,act};return EVAL}
+
+/* ============ 소리·진동 ============ */
+let audioCtx=null;
+function unlockAudio(){try{if(!audioCtx){const A=window.AudioContext||window.webkitAudioContext;if(A)audioCtx=new A()}if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume()}catch(e){}}
+document.addEventListener("pointerdown",unlockAudio);
+function beep(times,freq){try{unlockAudio();if(!audioCtx)return;const t0=audioCtx.currentTime;for(let i=0;i<times;i++){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq||880;g.gain.setValueAtTime(0.0001,t0+i*0.35);g.gain.exponentialRampToValueAtTime(0.35,t0+i*0.35+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+i*0.35+0.25);o.connect(g).connect(audioCtx.destination);o.start(t0+i*0.35);o.stop(t0+i*0.35+0.3)}}catch(e){}}
+function buzz(p){if(UID&&!S.settings.vibrate)return;try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}}
+function speak(t){if((UID&&!S.settings.voice)||!t)return;try{const u=new SpeechSynthesisUtterance(t);u.lang="ko-KR";speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+async function notify(t){try{if(!document.hidden||!("Notification" in window)||Notification.permission!=="granted")return;const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+  if(reg&&reg.showNotification)reg.showNotification("휴식벨트",{body:t,icon:"icons/icon-192.png",vibrate:[300,100,300],tag:"yeolswim"});else new Notification("휴식벨트",{body:t})}catch(e){}}
+/* 둥근 경보 팝업 (워치 알림처럼) */
+const BUB={1:["#ffd25a","#e9a90c","#2a221d"],2:["#ff9a4d","#e8742a","#fff"],3:["#ff6a5c","#d8382f","#fff"],w:["#6fb2ff","#2f7fd6","#fff"],g:["#5cc98a","#2f9e5c","#fff"]};
+let bubT=0;function bubble(kind,title,text){const c=BUB[kind]||BUB[2],el=$("bubOv");el.style.setProperty("--b1",c[0]);el.style.setProperty("--b2",c[1]);el.style.setProperty("--bt",c[2]);
+  $("bubTitle").textContent=title;$("bubText").textContent=text;el.hidden=false;clearTimeout(bubT);bubT=setTimeout(()=>{el.hidden=true},SIM?4000:15000)}
+function alarm(k,text){if(k>=3){buzz([600,200,600,200,600]);beep(3,960)}else if(k===2){buzz([400,150,400]);beep(2,880)}else{buzz([200]);beep(1,660)}speak(text);notify(text)}
+const siren={osc:null,gain:null,timer:0};
+function sirenOn(){unlockAudio();if(!audioCtx||siren.osc)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="square";g.gain.value=0.35;o.connect(g).connect(audioCtx.destination);o.start();siren.osc=o;siren.gain=g;let up=true;
+  siren.timer=setInterval(()=>{o.frequency.setValueAtTime(up?1300:750,audioCtx.currentTime);up=!up;buzz([400])},450);$("sirenTxt").textContent="사이렌 끄기"}
+function sirenOff(){clearInterval(siren.timer);try{siren.osc&&siren.osc.stop()}catch(e){}siren.osc=null;$("sirenTxt").textContent="사이렌 울려 주변에 알리기"}
+
+let wakeLock=null;
+async function syncWake(){const want=!SIM&&UID&&S.settings.wake&&!!S.workStart&&document.visibilityState==="visible";
+  try{if(want&&!wakeLock&&navigator.wakeLock){wakeLock=await navigator.wakeLock.request("screen");wakeLock.addEventListener("release",()=>{wakeLock=null})}else if(!want&&wakeLock){await wakeLock.release();wakeLock=null}}catch(e){wakeLock=null}}
+document.addEventListener("visibilitychange",syncWake);
+
+/* ============ 1초 루프 ============ */
+let lastT=now(),lastSample=0,actRun=0;
+function loop(){
+  motionTick();tickCount();tickCheck();checkFall();
+  if(!UID)return;virtualTick();
+  const t=now(),dt=(t-lastT)/60000;lastT=t;if(SIM)SIM.step(t,dt);
+  const e=evaluate(dt),a=actLevel();
+  if(!S.workStart&&S.settings.autoWork&&!SIM&&a!=null&&a>=1&&motionLive()){actRun+=dt;if(actRun>=3)startWork(true)}else actRun=0;
+  if(S.workStart&&t-lastSample>=5*60000){lastSample=t;const h=hrAvg(60);S.samples.push({at:t,score:e.score,level:e.lv.n,hr:h!=null?Math.round(h):null,act:e.actIdx,feels:+curAt().toFixed(1),mode:e.mode,rest:!!S.rest});if(S.samples.length>3000)S.samples.shift();save()}
+  if(S.workStart&&!S.rest){const k=e.lv.k;
+    if(k>S.lastAlarmK&&k>=1){S.lastAlarmK=k;logEvent("alarm",`${e.lv.n} · 열 부담 ${e.score}${e.flags.length?" · "+e.flags.join(", "):""}`);alarm(k,(e.flags.length?e.flags[0]+". ":"")+LV_VOICE[k]);bubble(k,["","주의","경고 · 휴식","대피"][k],LV_SAY[k]+(e.flags.length?` (${e.flags[0]})`:""));
+      if(k>=2&&t>=S.cooldownUntil)startRest(REST_MIN[k],true,`${e.lv.n} 단계${e.flags.length?" · "+e.flags.join(", "):""}`,"risk")}
+    else if(k<=1&&S.lastAlarmK>k)S.lastAlarmK=k}
+  tickRest(t);autoBaseline();renderLive();renderNotices(false)}
+function startWork(auto){S.workStart=now();S.lastRestEnd=null;S.lastAlarmK=0;S.strain=Math.min(S.strain,10);lastSample=0;
+  logEvent("work",auto?"움직임으로 작업 자동 시작":"작업 시작");if(auto){buzz([80]);speak("작업을 시작했어요. 휴식벨트가 지켜볼게요.")}unlockAudio();
+  try{if(!SIM&&"Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}save();syncWake();renderAll()}
+function endWork(){logEvent("work",`작업 끝 · ${minsTxt((now()-S.workStart)/60000)}`);S.workStart=null;S.lastAlarmK=0;save();syncWake();renderAll()}
+$("power").addEventListener("click",()=>{S.workStart?endWork():startWork(false)});
+
+/* ============ 휴식 ============ */
+function startRest(min,forced,reason,type){if(S.rest)return;S.rest={start:now(),min,forced,reason,type,k:EVAL.lv?EVAL.lv.k:2,rec1:null,done:false};
+  S.rests.push({start:S.rest.start,min,type,forced,reason});logEvent("rest",`${forced?"강제 휴식":"휴식"} ${min}분${reason?" · "+reason:""}`);save();
+  $("recBpm").value="";$("recMsg").textContent="";renderRest(now())}
+function tickRest(t){const r=S.rest;if(!r){$("restOv").hidden=true;return}const el=(t-r.start)/60000;
+  if(r.rec1==null&&el>=1&&watchLive()){const h=hrAvg(20)??hrNow();if(h!=null)recordRecovery(Math.round(h),true)}
+  if(!r.done&&t>=r.start+r.min*60000){r.done=true;const last=S.rests[S.rests.length-1];if(last)last.done=true;logEvent("rest",`휴식 ${r.min}분 완료`);save();buzz([200,100,200]);beep(2,660);speak("휴식이 끝났어요.")}
+  if(r.done){const end=r.start+r.min*60000,al=actLevel();if(t>=end+2*60000||(al!=null&&al>=2&&!SIM&&motionLive()&&t>=end+20000)){logEvent("rest","작업 자동 복귀");endRest();return}}
+  renderRest(t)}
+function recordRecovery(v,auto){const r=S.rest;if(!r)return;r.rec1=v;const last=S.rests[S.rests.length-1];if(last)last.rec1=v;
+  if(v>120){r.min+=10;$("recMsg").textContent=`${auto?"워치 측정 · ":""}쉬고 1분 뒤 ${v}: 아직 회복이 덜 돼서 10분 더 쉬어요.`;logEvent("recover",`쉬고 1분 뒤 ${v} · 10분 연장`);speak("회복이 덜 됐어요. 10분 더 쉬세요.");buzz([300,100,300])}
+  else{$("recMsg").textContent=`${auto?"워치 측정 · ":""}쉬고 1분 뒤 ${v}: 잘 회복하고 있어요.`;logEvent("recover",`쉬고 1분 뒤 ${v} · 회복 좋음`)}save()}
+const REST_COL={3:"var(--r)",2:"var(--o)"};
+function renderRest(t){const r=S.rest,ov=$("restOv");ov.hidden=!r;if(!r)return;ov.style.setProperty("--rc",REST_COL[r.k]||"var(--g)");
+  const total=r.min*60000,left=r.start+total-t,done=left<=0,el=(t-r.start)/60000,fr=clamp(1-left/total,0,1);
+  $("restKicker").textContent=r.forced?"강제 휴식":"휴식";
+  $("restTitle").textContent=done?"휴식 끝!":r.forced?(r.k>=3?"바로 시원한 곳으로":"일을 멈추고 쉬세요"):"쉬는 중이에요";
+  $("restReason").textContent=done?"다시 움직이면 자동으로 작업으로 돌아가요":r.reason||"";
+  $("restTime").textContent=done?"0:00":mmss(left);$("restLeft").textContent=done?"":`${r.min}분 중 남은 시간`;
+  $("restArc").setAttribute("stroke-dasharray",`${603.2*fr} 603.2`);$("restArc").style.opacity=fr>0.005?1:0;
+  $("recBox").hidden=done||r.rec1!=null||watchLive();
+  $("recLabel").textContent=el<1?`쉬고 1분 뒤 심박 (${mmss(60000-el*60000)} 뒤 입력)`:"쉬고 1분 뒤 심박 (손목 맥박 15초 × 4)";$("recSave").disabled=el<1;
+  $("restEnd").hidden=done;if(!restArm)$("restEnd").textContent=r.forced?"괜찮아요 · 휴식 끝내기":"휴식 끝내기";$("restDone").hidden=!done}
+function endRest(){if(S.rest){const last=S.rests[S.rests.length-1];if(last&&!last.done)last.actual=Math.round((now()-S.rest.start)/60000);S.lastRestEnd=now();if(S.rest.forced)S.cooldownUntil=now()+5*60000}
+  S.rest=null;S.lastAlarmK=0;save();$("restOv").hidden=true;renderAll()}
+$("recSave").addEventListener("click",()=>{const v=parseInt($("recBpm").value,10);if(v>=35&&v<=220)recordRecovery(v,false)});
+let restArm=0;$("restEnd").addEventListener("click",()=>{const f=S.rest&&S.rest.forced;
+  if(f&&!restArm){restArm=1;$("restEnd").textContent="정말 끝낼까요? 한 번 더 누르세요";setTimeout(()=>{restArm=0},3000);return}
+  restArm=0;logEvent("rest",f?"강제 휴식을 직접 끝냄 (본인 확인)":"휴식 직접 끝냄");endRest()});
+$("restDone").addEventListener("click",endRest);
+$("restDrink").addEventListener("click",drink);
+$("restSos").addEventListener("click",()=>startCountdown("휴식 중 직접 요청"));
+$("tRest").addEventListener("click",()=>{const r=myRule();startRest(r.min||10,false,"직접 시작한 휴식","self")});
+
+/* ============ 물 ============ */
+function drink(){$("bubOv").hidden=true;S.water.push({at:now()});logEvent("water","물 1컵");save();renderNotices(true);buzz([60]);toast("물 한 컵 기록했어요 💧");renderLive()}
+$("tWater").addEventListener("click",drink);
+
+/* ============ 알림 띠 ============ */
+let noticeKey="";
+function renderNotices(force){if(!UID)return;const items=[],t=now();
+  if(S.workStart&&!S.rest){
+    const lw=S.water.filter(w=>w.at>=S.workStart).pop(),ws=Math.max(lw?lw.at:S.workStart,S.lastRestEnd||0);
+    if((t-ws)/60000>=S.settings.remindWater){items.push({k:"w",c:"--water",t:"물 한 컵 마실 시간이에요",b:"마셨어요",a:"drink"});if(S.wateredFor!==ws){S.wateredFor=ws;buzz([120,80,120]);bubble("w","물 마실 시간","시원한 물 한 컵을 마시세요.");if(!SIM)speak("물 한 컵 드세요.");notify("물 한 컵 마실 시간이에요.")}}
+    const law=lawRule(curAt()),mine=myRule(),ls0=Math.max(S.workStart,S.lastRestEnd||0),since=(t-ls0)/60000;
+    if(law.stop){items.push({k:"s",c:"--r",t:"체감 38℃ 이상 · 작업을 멈추세요",b:"쉬기",a:"law"});if(S.lawFor!==ls0){S.lawFor=ls0;bubble(3,"폭염중대경보","긴급한 경우를 제외하고 작업을 중지하세요.")}}
+    else if(mine.every&&since>=mine.every){items.push({k:"m",c:"--o",t:`쉴 시간이에요 · ${mine.text}`,b:`${mine.min}분 쉬기`,a:"my"});
+      if(S.myFor!==ls0){S.myFor=ls0;buzz([300,120,300]);bubble(2,"휴식 시간",`나의 기준에 따라 ${mine.min}분 쉬세요.`);beep(2,700);speak(`쉴 시간이에요. ${mine.min}분 쉬세요.`);notify("쉴 시간이에요.")}}}
+  if(!ckToday())items.push({k:"c",c:"--brand",t:"오늘 작업 전 체크를 아직 안 했어요",b:"체크",a:"ck"});
+  if(S.mode==="watch"&&!SIM&&!watchLive())items.push({k:"d",c:"--idle",t:"워치 심박이 안 들어와요 · 폰으로 판단 중",b:"연결",a:"set"});
+  const key=items.map(i=>i.k+i.t).join("|");if(!force&&key===noticeKey)return;noticeKey=key;
+  const box=$("notices");box.innerHTML="";
+  items.forEach(i=>{const d=document.createElement("div");d.className="notice";d.style.setProperty("--nc",`var(${i.c})`);const s=document.createElement("span");s.textContent=i.t;const b=document.createElement("button");b.className="btn sm ink";b.type="button";b.textContent=i.b;
+    b.addEventListener("click",()=>{if(i.a==="drink")drink();else if(i.a==="law")startRest(20,false,"체감 38℃ 이상","law");else if(i.a==="my"){const r=myRule();startRest(r.min||10,false,`나의 기준 · ${r.text}`,"my")}else if(i.a==="ck")openCk();else show(i.a)});d.append(s,b);box.appendChild(d)})}
+
+/* ============ 화면 ============ */
+const VIEWS=["home","rep","ana","set"];
+function show(v){VIEWS.forEach(x=>{$("v-"+x).hidden=x!==v});
+  document.querySelectorAll(".navb[data-v]").forEach(b=>{if(b.dataset.v===v)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  ({home:renderAll,rep:renderRep,ana:renderAna,set:fillSettings})[v]?.();window.scrollTo(0,0)}
+document.querySelectorAll(".navb[data-v]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.v)));
+$("navSos").addEventListener("click",()=>startCountdown("구조 요청 버튼을 눌렀어요"));
+$("gearBtn").addEventListener("click",()=>show("set"));
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>{$(b.dataset.close).hidden=true}));
+
+function thermoSVG(at,P){const lo=24,hi=40,y=v=>200-(clamp(v,lo,hi)-lo)/(hi-lo)*180,d=P.delta;
+  const bands=[[lo,33-d,"--g"],[33-d,35-d,"--y"],[35-d,38-d,"--o"],[38-d,hi,"--r"]];
+  let s=`<rect x="26" y="14" width="22" height="196" rx="11" fill="${cssv("--sunk")}"/>`;
+  bands.forEach(([a,b,c])=>{if(b<=lo||a>=hi)return;const y1=y(Math.min(b,hi)),y2=y(Math.max(a,lo));s+=`<rect x="50" y="${y1}" width="6" height="${y2-y1}" fill="${cssv(c)}"/>`});
+  const mat=at+d,mc=cssv(STAGE_C[envStage(mat)]);
+  s+=`<rect x="31" y="${y(at)}" width="12" height="${206-y(at)}" rx="6" fill="${mc}"/><circle cx="37" cy="214" r="20" fill="${mc}"/><circle cx="37" cy="214" r="20" fill="none" stroke="${cssv("--card")}" stroke-width="3"/>`;
+  for(let v=26;v<=40;v+=2){s+=`<line x1="56" x2="62" y1="${y(v)}" y2="${y(v)}" stroke="${cssv("--muted")}" stroke-width="1.5"/>`;if(v%4===0)s+=`<text x="64" y="${y(v)+4}" font-size="11" font-weight="700" fill="${cssv("--muted")}">${v}</text>`}
+  s+=`<path d="M18 ${y(mat)}l-8-6v12z" fill="${cssv("--ink")}"/>`;return s}
+let lastMascot=null,lastThermo="";
+function renderLive(){if(!UID)return;
+  const e=EVAL,at=curAt(),t=now(),working=!!S.workStart,lv=working?e.lv:null,k=lv?lv.k:"idle",P=personal(),mat=at+P.delta;
+  document.body.dataset.lv=lv?lv.k:"idle";document.body.classList.toggle("big",!!S.settings.big);
+  if(lastMascot!==k){$("mascot").innerHTML=mascotSVG(k);lastMascot=k}
+  const m=SIM?SIM.mode:S.mode,live=SIM||(m==="watch"?watchLive():motionLive());
+  $("sensePill").classList.toggle("on",!!live);$("senseTxt").textContent=(SIM?"시연 · ":"")+(m==="watch"?(watchLive()?(S.device?.virtual?"시연용 워치 연결됨":"워치 연결됨"):"워치 기다리는 중"):(live?"폰으로 지켜보는 중":"폰 센서 대기"));
+  $("power").classList.toggle("on",working);$("power").setAttribute("aria-label",working?"작업 끝내기":"작업 시작");
+  $("lvName").textContent=S.rest?"쉬는 중":lv?lv.n:"작업 전";
+  $("say").textContent=S.rest?"푹 쉬고 오세요":lv?LV_SAY[lv.k]:"일을 시작할 때 버튼을 누르세요";
+  $("heroSub").textContent=working?`작업 ${minsTxt((t-S.workStart)/60000)}째 · 열 부담 ${e.score}/100`:(S.settings.autoWork?"폰을 지니고 움직이면 자동으로 켜져요":"");
+  [...$("lights").children].forEach((d,i)=>d.classList.toggle("on",!!lv&&i===lv.k));
+  // 온도계
+  const tk=at.toFixed(2)+"|"+P.delta+"|"+document.documentElement.dataset.cs;if(tk!==lastThermo){$("thermo").innerHTML=thermoSVG(at,P);lastThermo=tk}
+  $("tFeel").innerHTML=`${at.toFixed(1)}<small>℃</small>`;$("tRaw").textContent=`${S.env.place||"현장"} · 온도 ${(+S.env.ta).toFixed(1)}℃ · 습도 ${S.env.rh}%`;
+  const st=envStage(mat);$("tMine").style.setProperty("--tc",`var(${STAGE_C[st]})`);$("tMine").querySelector("span").textContent=P.delta?`나에게는 ${mat.toFixed(1)}℃처럼`:"나의 기준 = 법 기준";
+  $("tStage").textContent=STAGE_NAME[st];$("tStage").style.color=`var(${STAGE_C[st]})`;
+  // 타일 보조 문구
+  const lw=S.water.filter(w=>w.at>=new Date(now()).setHours(0,0,0,0));$("waterSub").textContent=lw.length?`오늘 ${lw.length}컵 · 마지막 ${hhmm(lw[lw.length-1].at)}`:"20분마다 한 컵";
+  const h=hrNow();$("hrSub").textContent=h!=null?`지금 심박 ${Math.round(h)}`:(m==="watch"?"워치 연결 필요":"손가락으로 20초");
+  const mr=myRule();$("restSub").textContent=mr.min?`${mr.min}분 휴식 타이머`:"휴식 타이머 시작";
+  // 체크리스트
+  const c=ckToday(),total=CK.reduce((a,g)=>a+g.items.length,0),done=c?Object.keys(c.a).length:0,yes=c?Object.values(c.a).filter(v=>v==="y").length:0;
+  $("ckBar").style.width=done/total*100+"%";$("ckSub").textContent=c?`${total}개 중 ${yes}개 준비됨${P.reasons.some(r=>r.startsWith("오늘"))?" · 컨디션이 기준에 반영됐어요":""}`:"오늘 아직 안 했어요";
+  // 휴식 기준
+  const law=lawRule(at),since=working?(t-Math.max(S.workStart,S.lastRestEnd||0))/60000:0;
+  const fmt=(r,el,el2)=>{if(r.stop){$(el).textContent="지금";$(el2).textContent=r.text;return}if(!r.every){$(el).textContent="–";$(el2).textContent=r.text;return}
+    $(el).innerHTML=working?`${Math.max(0,Math.ceil(r.every-since))}<small>분 뒤</small>`:`${r.every}<small>분마다</small>`;$(el2).textContent=r.text};
+  fmt(law,"rLaw","rLawS");fmt(mr,"rMine","rMineS");
+  if(!working){$("rBody").textContent="–";$("rBodyS").textContent=m==="watch"?"작업하면 심박을 지켜봐요":"작업하면 움직임을 지켜봐요"}
+  else{const eta=aiEta();if(e.lv.k>=2){$("rBody").textContent="지금";$("rBodyS").textContent=`${REST_MIN[e.lv.k]}분 쉬어야 해요`}else if(eta!=null){$("rBody").innerHTML=`${Math.ceil(eta)}<small>분 뒤</small>`;$("rBodyS").textContent="이대로면 경고"}else{$("rBody").textContent=e.lv.k===1?"주의":"여유";$("rBodyS").textContent=e.mode==="watch"?"심박 지켜보는 중":"움직임 지켜보는 중"}}
+  $("workTime").textContent=working?`작업 ${minsTxt((t-S.workStart)/60000)}째`:"";
+  renderMine(P,at);
+  // 판단 근거
+  $("wEnv").style.width=e.env/40*100+"%";$("wEnvV").textContent=`${e.env}/40`;$("w2l").textContent=e.mode==="watch"?"심박":"활동";
+  $("wAct").style.width=e.act/30*100+"%";$("wActV").textContent=`${e.act}/30`;$("wPer").style.width=e.per/30*100+"%";$("wPerV").textContent=`${e.per}/30`;
+  $("wChips").innerHTML=e.checks.map(c=>`<span class="${c.hit?"hit":"ok"}">${c.hit?"✕":"✓"} ${esc(c.t)}</span>`).join("")+e.flags.map(f=>`<span class="hit">! ${esc(f)}</span>`).join("");
+  $("wText").textContent=e.mode==="watch"?"같은 강도로 일할 때 내 평소 심박보다 얼마나 더 뛰는지, 나의 체감온도, 심박·체온 기준, 증상을 함께 봐요.":`폰 움직임으로 잰 작업 강도와 나의 체감온도(${mat.toFixed(1)}℃)로 몸에 쌓이는 열을 추정해요. 쉬면 내려가요.`}
+function renderMine(P,at){const age=+S.profile.age,start=33-P.delta,ageOnly=33-ageStep(age)*PT;
+  $("ageLine").innerHTML=`<b>내 나이 ${age}세</b> → 나이만으로 <b>${ageOnly.toFixed(1)}℃</b>부터 휴식${ageStep(age)?` (법보다 ${(33-ageOnly).toFixed(1)}℃ 먼저)`:" (법과 같음)"}<br>모두 합치면 체감 <b>${start.toFixed(1)}℃</b>부터 휴식 · 심박 기준 <b>${180-age}</b> (180−나이)`;
+  const pos=clamp((age-20)/50,0,1)*100;$("ageMark").style.left=pos+"%";$("ageMarkTxt").textContent=age+"세";
+  $("myChips").innerHTML=P.items.length?P.items.map(i=>`<span class="${i.pt<0?"ok":i.age?"age":"hit"}">${esc(i.t)} ${i.pt>0?"+":"−"}${Math.abs(i.pt*PT).toFixed(1)}℃</span>`).join("")+`<span class="sum">합계 +${P.delta.toFixed(1)}℃${P.pts*PT>3?" (최대 3℃)":""}</span>`:'<span>보정 없음 · 법 기준과 같아요</span>'}
+function aiEta(){if(EVAL.mode!=="phone"||!S.workStart)return null;const envF=clamp((myAt()-25)/13,0,1.25),a=actLevel()??+S.profile.work,target=clamp(100*envF*(0.35+0.65*[0.15,0.45,0.75,1][a]),0,100);
+  if(target<=55||S.strain>=55)return null;return -20*Math.log((target-55)/(target-S.strain))}
+function renderAll(){if(!UID)return;renderChatPreview();$("whoName").textContent=S.profile.nick||"근로자";renderLive();renderNotices(true)}
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{document.documentElement.dataset.cs=e.matches?"d":"l";lastThermo="";renderLive()})}catch(e){}
+
+/* ============ 건강수칙 (질병관리청 온열질환 예방 건강수칙) ============ */
+const IC={
+  water:'<path d="M9 3h6v3l1.5 2v12a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1V8L9 6z"/><path d="M7.5 12h9"/>',
+  vest:'<path d="M8 3l-4 3v14h6v-6h4v6h6V6l-4-3-2 4h-4z"/>',
+  fan:'<circle cx="12" cy="10" r="2"/><path d="M12 8c0-4 3-5 4-4s0 4-4 4M14 10c4 0 5 3 4 4s-4 0-4-4M10 10c-4 0-5-3-4-4s4 0 4 4M12 12c0 4-3 5-4 4s0-4 4-4"/><path d="M12 14v7M8 21h8"/>',
+  shade:'<path d="M3 11a9 9 0 0 1 18 0z"/><path d="M12 11v9a2 2 0 0 1-4 0"/>',
+  dizzy:'<circle cx="12" cy="13" r="7"/><path d="M9 12l2 2M11 12l-2 2M13 12l2 2M15 12l-2 2M10 17h4"/><path d="M17 3c1 1 1 2 0 3M20 5c1 1 1 2 0 3"/>',
+  two:'<circle cx="8" cy="7" r="3"/><circle cx="16" cy="7" r="3"/><path d="M2 20a6 6 0 0 1 12 0M10 20a6 6 0 0 1 12 0"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+  phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M10 9h4M12 7v6"/>',
+  kit:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M12 10v7M8.5 13.5h7"/>',
+  aid:'<path d="M12 21s-7-4.5-9-9C1.5 8.5 3.6 5 7 5c2 0 3.5 1 5 3 1.5-2 3-3 5-3 3.4 0 5.5 3.5 4 7-2 4.5-9 9-9 9z"/><path d="M12 10v5M9.5 12.5h5"/>'};
+const RULES=[
+  {i:"water",c:"--water",t:"물 충분히 마시기",d:"목마르지 않아도 20분마다 한 컵. 땀을 많이 흘리면 이온음료를."},
+  {i:"vest",c:"--water",t:"보냉장구 사용",d:"쿨조끼, 얼음조끼, 냉각 스카프로 몸을 식혀요."},
+  {i:"fan",c:"--o",t:"냉방장비 활용",d:"선풍기·이동식 에어컨을 켜고 실내는 자주 환기해요."},
+  {i:"shade",c:"--g",t:"충분히 쉬기",d:"틈틈이 그늘이나 시원한 곳에서 쉬어요."},
+  {i:"dizzy",c:"--o",t:"증상이 있으면 바로 휴식",d:"어지러움·두통·메스꺼움이 있으면 일을 멈추고 쉬어요."},
+  {i:"two",c:"--g",t:"2인 1조로 일하기",d:"동료와 서로 얼굴색과 상태를 확인해요."},
+  {i:"sun",c:"--r",t:"무리하지 않기",d:"폭염특보 때는 무리한 작업을 피해요."},
+  {i:"phone",c:"--water",t:"날씨 확인하기",d:"매일 기온과 폭염특보를 확인해요."},
+  {i:"kit",c:"--r",t:"비상대응요령 알기",d:"비상연락망과 응급조치 방법을 알아둬요."},
+  {i:"aid",c:"--r",t:"동료가 쓰러졌다면",d:"의식이 없으면 바로 119! 시원한 곳으로 옮기고 몸을 식혀요. 음료는 먹이지 마세요.",aid:1}];
+function buildRules(){const box=$("rulesbox"),dots=$("ruleDots");box.innerHTML=RULES.map((r,i)=>`<div class="rule${r.aid?" aid":""}" style="--rc:var(${r.c})"><span class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[r.i]}</svg></span><div><em>수칙 ${i+1}</em><b>${r.t}</b><p>${r.d}</p></div></div>`).join("");
+  dots.innerHTML=RULES.map(()=>"<i></i>").join("");
+  const upd=()=>{const i=Math.round(box.scrollLeft/box.clientWidth);[...dots.children].forEach((d,j)=>d.classList.toggle("on",j===i));$("ruleNo").textContent=`${i+1} / ${RULES.length} · 옆으로 넘겨보세요`};
+  box.addEventListener("scroll",upd,{passive:true});upd();
+  let pause=0;box.addEventListener("pointerdown",()=>pause=Date.now());
+  setInterval(()=>{if($("v-home").hidden||Date.now()-pause<12000||!box.clientWidth)return;const i=Math.round(box.scrollLeft/box.clientWidth),n=(i+1)%RULES.length;box.scrollTo({left:n*box.clientWidth,behavior:"smooth"})},6000)}
+
+/* ============ 작업 전 체크리스트 ============ */
+let ckDraft=null;
+function openCk(){ckDraft=clone(ckToday()||{day:todayKey(),a:{}});renderCk();$("ckOv").hidden=false}
+function renderCk(){const L=$("ckList");L.innerHTML="";
+  CK.forEach(g=>{const w=document.createElement("div");w.className="ckgroup";w.innerHTML=`<h3>${g.g}</h3>`;
+    g.items.forEach(it=>{const d=document.createElement("div");d.className="ckitem";const v=ckDraft.a[it.id];
+      d.innerHTML=`<div><b>${it.t}</b>${it.s?`<small>${it.s}</small>`:""}${it.body?`<small>‘아니요’면 오늘 기준이 더 조심스러워져요</small>`:""}</div><div class="yn"><button type="button" class="y" aria-pressed="${v==="y"}">네</button><button type="button" class="n" aria-pressed="${v==="n"}">아니요</button></div>`;
+      d.querySelector(".y").addEventListener("click",()=>{ckDraft.a[it.id]="y";renderCk()});d.querySelector(".n").addEventListener("click",()=>{ckDraft.a[it.id]="n";renderCk()});w.appendChild(d)});L.appendChild(w)});
+  const P0=personal(S.profile,null),P1=personal(S.profile,ckDraft),no=CK.flatMap(g=>g.items).filter(i=>ckDraft.a[i.id]==="n"&&!i.body);
+  $("ckResult").innerHTML=`<b>오늘 나의 보정: +${P1.delta.toFixed(1)}℃</b>${P1.delta>P0.delta?" (컨디션 때문에 평소보다 높아요)":""}${no.length?`<br>준비가 안 된 것: ${no.map(i=>i.t.replace(/\?$/,"")).join(", ")}`:""}`;
+  $("ckResult").className=P1.delta>P0.delta||no.length?"note warn":"note ok"}
+$("ckBtn").addEventListener("click",openCk);
+$("ckDone").addEventListener("click",()=>{S.ck=ckDraft;S.ck.at=now();const n=Object.keys(S.ck.a).length;logEvent("check",`작업 전 체크 ${n}개`);save();$("ckOv").hidden=true;lastThermo="";renderAll();toast("체크리스트를 저장했어요")});
+
+/* ============ 증상 ============ */
+function openSym(){const L=$("symList");L.innerHTML="";const sc=["","--y","--o","--r"],sn=["","가벼움","주의","위험"];
+  SYMS.forEach(s=>{const l=document.createElement("label");l.className="symitem";l.innerHTML=`<input type="checkbox" value="${s.id}"><span>${s.t}</span><span class="sev" style="background:color-mix(in srgb,var(${sc[s.s]}) 18%,var(--card));color:var(${sc[s.s]})">${sn[s.s]}</span>`;L.appendChild(l)});$("symOv").hidden=false}
+$("tSym").addEventListener("click",openSym);
+$("symNone").addEventListener("click",()=>{S.sym=null;logEvent("symptom","괜찮음");save();$("symOv").hidden=true;toast("괜찮다고 기록했어요")});
+$("symSave").addEventListener("click",()=>{const ids=[...$("symList").querySelectorAll("input:checked")].map(i=>i.value);$("symOv").hidden=true;if(!ids.length){S.sym=null;save();return}
+  const items=SYMS.filter(s=>ids.includes(s.id)),sev=Math.max(...items.map(s=>s.s));S.sym={at:now(),ids,sev,names:items.map(s=>s.t.replace(/요$/,""))};logEvent("symptom",`증상 ${items.length}개 · ${["","가벼움","주의","위험"][sev]}`);save();
+  if(sev>=3){speak("열사병이 의심됩니다. 구조 요청을 보냅니다.");startCountdown(`위험 증상: ${S.sym.names.join(", ")}`)}
+  else{if(!S.workStart)startWork(false);evaluate(0);renderAll();toast(sev>=2?"증상을 반영했어요. 쉬어야 해요":"물을 마시고 천천히 하세요")}});
+
+
+/* ============ 증상 상담 채팅 (질병관리청 온열질환 응급조치 기준, 규칙 기반) ============ */
+const KB=[
+  {id:"stroke",sev:3,k:["의식","정신","헛소리","말이 안","말이 어눌","횡설수설","쓰러","기절","땀이 안","땀 안","땀이 안 나","피부가 뜨거","뜨겁고 건조","몸이 불덩","경련","발작","40도"],
+   name:"열사병 의심",a:["<b>지금 바로 119에 전화하세요.</b> 열사병은 생명이 위험해요.","시원한 곳으로 옮기고 옷을 느슨하게 풀어요.","몸에 시원한 물을 뿌리고 부채질해 체온을 내려요. 겨드랑이·목·사타구니에 얼음팩을 대요.","<b>의식이 없으면 물이나 음료를 먹이지 마세요</b> (질식 위험)."],act:["sos","119"]},
+  {id:"chest",sev:3,k:["가슴","숨이 차","숨쉬기","숨 막","호흡"],name:"가슴 통증·호흡 곤란",a:["더위와 관계없이 위험할 수 있어요. <b>바로 119에 전화하세요.</b>","작업을 멈추고 편하게 앉아서 기다려요. 혼자 있지 마세요."],act:["sos","119"]},
+  {id:"faint",sev:2,k:["어지러","어지럽","어질","핑 돌","핑돌","눈앞이 깜깜","휘청","쓰러질 것"],name:"어지러움 (열실신·열탈진)",a:["바로 일을 멈추고 시원한 곳에 <b>누우세요</b>. 다리를 심장보다 높게 올려요.","정신이 맑아지면 물이나 이온음료를 조금씩 마셔요.","30분이 지나도 나아지지 않거나 정신이 흐려지면 119에 연락하세요."],act:["rest","water"]},
+  {id:"exhaust",sev:2,k:["두통","머리가 아","머리 아","메스꺼","메스껍","울렁","구토","토할","토했","속이 안","기운이 없","힘이 없","너무 지쳐","창백","식은땀","땀을 많이","땀이 많","땀이 너무"],name:"열탈진 의심",a:["작업을 멈추고 그늘이나 냉방이 되는 곳에서 쉬세요.","물이나 이온음료를 천천히 마시고, 옷을 느슨하게 해요.","시원한 물수건으로 얼굴·목을 닦아요.","<b>1시간 쉬어도 나아지지 않으면 병원에 가세요.</b> 토를 계속하면 바로 119."],act:["rest","water"]},
+  {id:"cramp",sev:2,k:["쥐","근육","경련 나","결려","경직","종아리","다리가 땡","팔이 땡","저려"],name:"열경련 의심",a:["일을 멈추고 시원한 곳에서 쉬세요.","이온음료나 물을 마셔요 (땀으로 염분이 빠져서 생겨요).","경련 난 근육을 천천히 늘이고 주물러요.","1시간 넘게 계속되면 병원에 가세요. 심장 질환이 있으면 바로 진료를 받아요."],act:["rest","water"]},
+  {id:"swell",sev:1,k:["붓","부었","부종","발이 부","손이 부"],name:"열부종",a:["시원한 곳에서 다리를 높이 올리고 쉬어요.","꽉 끼는 장갑·신발을 잠시 풀어요."],act:["rest"]},
+  {id:"rash",sev:1,k:["땀띠","발진","따가","가려"],name:"열발진 (땀띠)",a:["시원하고 건조한 곳에서 피부를 말려요.","땀에 젖은 옷은 갈아입고, 연고는 피부를 덮어 더 악화될 수 있어요."],act:[]},
+  {id:"thirst",sev:1,k:["목마","목말","목이 말","물이 마시","갈증","입이 마"],name:"탈수 시작",a:["지금 물이나 이온음료를 <b>한 컵(약 240mL)</b> 마시세요.","목마르기 전에 20분마다 한 컵씩 마시는 게 좋아요.","소변 색이 진하면 탈수 신호예요."],act:["water"]},
+  {id:"heart",sev:2,k:["심장","두근","맥박이 빨","가슴이 뛰"],name:"심장이 빨리 뜀",a:["일을 멈추고 시원한 곳에 앉아 쉬어요.","심박·체온 재기로 지금 심박을 확인해 보세요. 쉬고 1분 뒤에도 120이 넘으면 더 쉬어야 해요.","가슴 통증이나 숨참이 같이 있으면 바로 119."],act:["rest","measure"]},
+  {id:"hot",sev:1,k:["더워","덥","몸이 뜨","열이 나","후끈"],name:"몸에 열이 쌓임",a:["시원한 곳에서 10분 정도 쉬고 물을 마셔요.","쿨조끼·냉각 스카프가 있으면 착용해요.","체온계가 있으면 재 보세요. 38℃ 이상이면 작업을 멈추세요."],act:["rest","water","measure"]}];
+const QUICK=["어지러워요","머리가 아파요","속이 메스꺼워요","다리에 쥐가 나요","땀이 너무 많이 나요","목이 말라요","가슴이 답답해요","동료가 쓰러졌어요"];
+const ACTMAP={sos:["구조 요청","sos"],119:["119 전화","dark"],rest:["지금 쉬기","green"],water:["물 마셨어요","water"],measure:["심박·체온 재기",""]};
+const dayLabel=t=>{const d=new Date(t);return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`};
+const ampm=t=>{const d=new Date(t),h=d.getHours();return `${h<12?"오전":"오후"} ${h%12||12}:${pad(d.getMinutes())}`};
+function chatEl(m,prev,next){const frag=document.createDocumentFragment();
+  if(!prev||new Date(prev.at).toDateString()!==new Date(m.at).toDateString()){const s=document.createElement("div");s.className="daysep";s.innerHTML=`<span>${dayLabel(m.at)}</span>`;frag.appendChild(s)}
+  const sameMin=(x,y)=>x&&y&&x.who===y.who&&Math.floor(x.at/60000)===Math.floor(y.at/60000);
+  const first=!sameMin(prev,m)||!prev||new Date(prev.at).toDateString()!==new Date(m.at).toDateString(),last=!sameMin(m,next);
+  const row=document.createElement("div");row.className="crow "+m.who+(first?" first":"");
+  if(m.who==="bot"){const av=document.createElement("div");av.className="cav";if(first)av.innerHTML=`<svg viewBox="0 0 140 140">${mascotSVG(0)}</svg>`;row.appendChild(av)}
+  const col=document.createElement("div");col.className="ccol";if(m.who==="bot"&&first){const n=document.createElement("div");n.className="cname";n.textContent="휴식벨트";col.appendChild(n)}
+  const line=document.createElement("div");line.className="cline";const bub=document.createElement("div");bub.className="msg "+m.who;bub.innerHTML=m.html;
+  if(m.acts&&m.acts.length){const bx=document.createElement("div");bx.className="msgacts";m.acts.forEach(a=>{const btn=document.createElement(a==="119"?"a":"button");btn.className="btn sm "+ACTMAP[a][1];btn.textContent=ACTMAP[a][0];
+    if(a==="119"){btn.href="tel:119";btn.target="_blank";btn.rel="noopener"}else btn.type="button";
+    btn.addEventListener("click",()=>{if(a==="sos"){$("chatOv").hidden=true;startCountdown("증상 상담에서 요청")}else if(a==="rest"){$("chatOv").hidden=true;const r=myRule();startRest(Math.max(15,r.min||15),false,"증상 때문에 쉬기","self")}else if(a==="water"){drink()}else if(a==="measure"){$("chatOv").hidden=true;$("tMeasure").click()}});bx.appendChild(btn)});bub.appendChild(bx)}
+  line.appendChild(bub);if(last){const tm=document.createElement("span");tm.className="ctime";tm.textContent=ampm(m.at);line.appendChild(tm)}
+  col.appendChild(line);row.appendChild(col);frag.appendChild(row);return frag}
+function renderChat(){const L=$("chatLog"),c=S.chat||[];L.innerHTML="";if(!c.length){L.innerHTML='<p class="chatempty">아직 나눈 대화가 없어요</p>'}
+  c.forEach((m,i)=>L.appendChild(chatEl(m,c[i-1],c[i+1])));requestAnimationFrame(()=>{L.scrollTop=L.scrollHeight})}
+function chatAdd(who,html,acts){if(!S.chat)S.chat=[];S.chat.push({at:now(),who,html,acts:acts||[]});if(S.chat.length>400)S.chat.splice(0,S.chat.length-400);save();renderChat();renderChatPreview()}
+function renderChatPreview(){const c=S.chat||[],m=c[c.length-1];$("chatPrev").textContent=m?`${ampm(m.at)} · ${m.html.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,28)}…`:'"어지러워요"라고 말하면 해결 방법을 알려줘요'}
+/* 대화 맥락 */
+function ctxText(){const p=S.profile,P=personal(),e=EVAL,w=S.workStart;const cups=S.water.filter(x=>x.at>=dayStart()).length;
+  return `나이 ${p.age}세, 현장 투입 ${p.accl==="new"?"1주 미만":"1주 이상"}, ${p.cond?"고혈압·당뇨·심장 질환 있음":"지병 없음"}, ${p.hist?"온열질환 경험 있음":""} 작업 강도 ${["","가벼움","보통","무거움"][+p.work]}.
+현장: ${S.env.place||"-"}, 기온 ${S.env.ta}℃, 습도 ${S.env.rh}%, 기상청 체감온도 ${curAt().toFixed(1)}℃, 개인 보정 +${P.delta.toFixed(1)}℃ → 나의 체감온도 ${myAt().toFixed(1)}℃.
+법정 휴식: ${lawRule(curAt()).text}. 나에게 맞춘 휴식: ${myRule().text}.
+${w?`작업 ${Math.round((now()-S.workStart)/60000)}분째, 열 부담 ${e.score}/100 (${e.lv.n} 단계)${S.rest?", 지금 휴식 중":""}.`:"아직 작업 시작 전."} 오늘 물 ${cups}컵.${hrNow()!=null?` 지금 심박 ${Math.round(hrNow())}.`:""}`}
+function ruleSymptom(t){
+  if(/동료|옆 사람|다른 사람|친구/.test(t)&&/쓰러|기절|이상|의식/.test(t))return{sev:3,hits:[{id:"other",name:"동료가 쓰러짐"}],acts:["119","sos"],html:`<b>동료가 쓰러졌다면</b><ol><li><b>의식이 없으면 바로 119</b>에 전화하세요.</li><li>시원한 곳으로 옮기고 옷을 느슨하게 풀어요.</li><li>시원한 물을 뿌리고 부채질해 몸을 식혀요.</li><li><b>의식이 없으면 음료를 먹이지 마세요</b> (질식 위험).</li><li>의식이 있으면 물·이온음료를 마시게 하고 곁을 지켜요.</li></ol>`,other:1};
+  const hits=KB.filter(k=>k.k.some(w=>t.includes(w)));if(!hits.length)return null;
+  hits.sort((a,b)=>b.sev-a.sev);const top=hits[0],sev=top.sev,P=personal(),age=+S.profile.age;
+  const head=sev>=3?`<span class="badge r">위험</span>`:sev===2?`<span class="badge o">주의</span>`:`<span class="badge y">가벼움</span>`;
+  let html=`${head} <b>${top.name}</b><ol>${top.a.map(x=>`<li>${x}</li>`).join("")}</ol>`;
+  if(hits.length>1)html+=`<p class="tiny muted">같이 말한 증상: ${hits.slice(1).map(h=>h.name).join(", ")}</p>`;
+  if(sev>=2&&(age>=55||P.sensitive))html+=`<p class="tiny" style="font-weight:800;color:var(--o)">${age}세${P.sensitive?"·민감군":""}이라 회복이 느릴 수 있어요. 평소보다 더 오래 쉬세요.</p>`;
+  return{sev,hits,acts:top.act,html}}
+function ruleTalk(t){const P=personal(),mr=myRule(),nick=esc(S.profile.nick||"");const cups=S.water.filter(x=>x.at>=dayStart()).length;
+  if(/안녕|하이|반가|hello/i.test(t))return`안녕하세요 ${nick}님! 오늘 몸은 좀 어떠세요? 불편한 곳이 있으면 편하게 말해 주세요.`;
+  if(/고마|감사|땡큐/.test(t))return`천만에요. 무리하지 마시고, 조금이라도 이상하면 바로 말해 주세요.`;
+  if(/괜찮아졌|나아졌|좋아졌|괜찮아요|괜찮/.test(t))return`다행이에요! 그래도 바로 무리하지 말고 물 한 컵 마신 뒤 천천히 시작하세요. 다시 어지럽거나 아프면 바로 쉬어야 해요.`;
+  if(/언제 쉬|몇 분|쉬어야|휴식/.test(t)){const ls=S.workStart?Math.max(S.workStart,S.lastRestEnd||0):null,left=ls&&mr.every?Math.max(0,Math.ceil(mr.every-(now()-ls)/60000)):null;
+    return`${nick}님의 휴식 기준은 <b>${mr.text}</b>이에요 (법 기준: ${lawRule(curAt()).text}).${left!=null?` 다음 휴식까지 <b>${left}분</b> 남았어요.`:""} 몸이 이상하면 시간과 상관없이 먼저 쉬세요.`}
+  if(/물|수분|마셔|이온/.test(t))return`20분마다 한 컵(약 240mL)씩 마시는 게 좋아요. 오늘은 지금까지 <b>${cups}컵</b> 마셨어요. 땀을 많이 흘리면 이온음료를 섞어 드세요.`;
+  if(/온도|체감|몇 도|날씨|습도/.test(t))return`지금 현장은 기온 ${S.env.ta}℃, 습도 ${S.env.rh}%라서 체감온도는 <b>${curAt().toFixed(1)}℃</b>예요. ${nick}님은 ${P.reasons.length?P.reasons.join(", ")+" 때문에":""} <b>${myAt().toFixed(1)}℃</b>처럼 보고 관리하고 있어요.`;
+  if(/나이|기준|왜|보정/.test(t))return`같은 온도라도 나이가 많거나 지병이 있으면 몸에 열이 더 쌓여요. 그래서 ${nick}님은 체감온도에 <b>+${P.delta.toFixed(1)}℃</b>를 더해 판단해요 (${P.reasons.join(", ")||"보정 없음"}).`;
+  if(/심박|맥박/.test(t))return hrNow()!=null?`지금 심박은 <b>${Math.round(hrNow())}</b>이에요. ${S.profile.age}세 기준으로 ${180-S.profile.age} 이상이 몇 분 계속되면 쉬어야 해요.`:`홈의 "심박·체온 재기"에서 손가락으로 20초 재 볼 수 있어요. ${180-S.profile.age} 이상이 계속되면 쉬어야 해요.`;
+  return null}
+async function chatAnswer(q){const t=q.replace(/\s+/g," "),rs=ruleSymptom(t);
+  if(rs){const names=rs.hits.map(h=>h.name);if(!rs.other){S.sym={at:now(),ids:rs.hits.map(h=>h.id),sev:rs.sev,names};logEvent("symptom",`상담: ${names.join(", ")}`);save()}
+    if(rs.sev>=3)alarm(3,"위험한 증상입니다. 119에 전화하거나 구조 요청을 누르세요.")}
+  const ai=await getAI();
+  if(ai){chatAdd("bot",'<span class="typing"><i></i><i></i><i></i></span>');const m=S.chat[S.chat.length-1],bub=()=>[...$("chatLog").querySelectorAll(".msg.bot")].pop();
+    const hist=(S.chat||[]).filter(x=>x.at>=dayStart()&&x!==m).slice(-12).map(x=>({role:x.who==="me"?"user":"assistant",content:x.html.replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim()}));
+    if(hist.length&&hist[0].role!=="user")hist.shift();
+    const sys=`너는 건설 현장 온열질환 예방 앱 "휴식벨트"의 상담 도우미야. 실내·반밀폐 건설 현장에서 일하는 근로자(어르신도 많음)와 대화해.
+규칙: 쉬운 존댓말, 짧게(3~6문장), 필요하면 번호 목록. 의학적 진단은 하지 말고 질병관리청 온열질환 응급조치와 고용노동부 폭염 대응 기준에 맞게 행동을 안내해. 의식 저하·말 어눌함·땀이 안 나고 뜨거운 피부·경련·가슴 통증·호흡 곤란이면 첫 문장에서 바로 119와 구조 요청 버튼을 누르라고 해. 아래 근로자 정보를 활용해 이 사람에게 맞춰 말해(예: 나이·지병 때문에 더 오래 쉬기). 마크다운 굵게는 **로 표시해도 돼.
+[근로자 정보] ${ctxText()}${rs?`\n[앱이 감지한 증상] ${rs.hits.map(h=>h.name).join(", ")} (위험도 ${["","가벼움","주의","위험"][rs.sev]})`:""}`;
+    const msgs=hist.length?[...hist]:[];msgs.unshift({role:"user",content:sys},{role:"assistant",content:"네, 이해했어요."});if(msgs[msgs.length-1]?.role==="user"&&msgs[msgs.length-1].content===q){} else msgs.push({role:"user",content:q});
+    const mm=[];msgs.forEach(x=>{const l=mm[mm.length-1];if(l&&l.role===x.role)l.content+="\n"+x.content;else mm.push({...x})});msgs.length=0;msgs.push(...mm);
+    const fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
+    try{const r=await ai(msgs,{cache:false,modelTier:"quick",onText:({text})=>{const el=bub();if(el)el.innerHTML=fmt(text)}});
+      m.html=(rs&&rs.sev?(rs.sev>=3?`<span class="badge r">위험</span> `:rs.sev===2?`<span class="badge o">주의</span> `:`<span class="badge y">가벼움</span> `):"")+fmt(r.text||"");m.acts=rs?rs.acts:[];save();renderChat();renderChatPreview()}
+    catch(e){S.chat.pop();save();if(e&&e.code==="not_granted")AI=null;chatAdd("bot",rs?rs.html:(ruleTalk(t)||"지금은 답을 만들지 못했어요. 증상을 짧게 다시 말해 주세요."),rs?rs.acts:[])}
+  }else{if(rs)chatAdd("bot",rs.html+(S.workStart?`<p class="tiny muted">지금 체감 ${curAt().toFixed(1)}℃ · 나의 기준 ${myAt().toFixed(1)}℃ · 열 부담 ${EVAL.score}</p>`:""),rs.acts);
+    else{const tk=ruleTalk(t);chatAdd("bot",tk||`잘 이해하지 못했어요. 아래 버튼에서 비슷한 증상을 고르거나 "어지러워요", "머리가 아파요"처럼 말해 주세요. "언제 쉬어요?", "물 얼마나 마셔요?"처럼 물어봐도 돼요.<br><span class="tiny muted">정신이 흐리거나 숨이 차면 바로 119에 전화하세요.</span>`,tk?[]:["119"])}}
+  if(rs&&rs.sev<3&&!rs.other){if(!S.workStart)startWork(false);evaluate(0);renderAll()}}
+let AI;async function getAI(){if(AI!==undefined)return AI;AI=null;try{if(window.claude&&window.claude.use){const s=await Promise.race([window.claude.use("sample"),new Promise(r=>setTimeout(()=>r(null),4000))]);AI=s||null}}catch(e){AI=null}return AI}
+let chatBusy=false;function chatSend(q){q=(q||"").trim();if(!q||chatBusy)return;chatAdd("me",esc(q));$("chatIn").value="";chatBusy=true;setTimeout(async()=>{try{await chatAnswer(q)}finally{chatBusy=false}},300)}
+function openChat(){$("chatOv").hidden=false;getAI().then(a=>{$("chatSub").textContent=a?"Claude가 답해요 · 응급조치 기준 · 대화는 이 폰에만 저장":"응급조치 안내 · 대화는 이 폰에만 저장돼요"});const c=S.chat||[],last=c[c.length-1];
+  if(!last||new Date(last.at).toDateString()!==new Date(now()).toDateString())chatAdd("bot",`${esc(S.profile.nick||"")}님, 몸이 어디가 불편한가요? 증상을 적거나 아래 버튼을 눌러 주세요.<br><span class="tiny muted">질병관리청 온열질환 응급조치를 바탕으로 알려드려요. 의사의 진료를 대신하지는 않아요.</span>`);else renderChat();
+  $("chatQuick").innerHTML="";QUICK.forEach(q=>{const b=document.createElement("button");b.type="button";b.className="qchip";b.textContent=q;b.addEventListener("click",()=>chatSend(q));$("chatQuick").appendChild(b)})}
+$("chatBack").addEventListener("click",()=>{$("chatOv").hidden=true});
+twoStep($("chatClear"),"대화 지우기",()=>{S.chat=[];save();renderChat();renderChatPreview()});
+$("tChat").addEventListener("click",openChat);$("symChat").addEventListener("click",()=>{$("symOv").hidden=true;openChat()});
+$("chatForm").addEventListener("submit",e=>{e.preventDefault();chatSend($("chatIn").value)});
+$("chatMic").addEventListener("click",()=>{const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){toast("이 휴대폰은 음성 입력을 지원하지 않아요. 키보드의 마이크를 써 주세요");return}
+  const r=new R();r.lang="ko-KR";r.interimResults=false;$("chatMic").classList.add("on");r.onresult=e=>chatSend(e.results[0][0].transcript);r.onend=()=>$("chatMic").classList.remove("on");r.onerror=()=>{$("chatMic").classList.remove("on");toast("음성을 듣지 못했어요")};try{r.start()}catch(e){}});
+
+/* ============ 온도·습도 ============ */
+$("envBtn").addEventListener("click",()=>{$("ta").value=S.env.ta;$("rh").value=S.env.rh;$("place").value=S.env.place;renderOut();$("envOv").hidden=false});
+$("envPresets").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$("ta").value=b.dataset.ta;$("rh").value=b.dataset.rh;$("place").value=b.dataset.place});
+$("envSave").addEventListener("click",()=>{const ta=parseFloat($("ta").value),rh=parseFloat($("rh").value);if(isFinite(ta)&&ta>=0&&ta<=50)S.env.ta=ta;if(isFinite(rh)&&rh>=5&&rh<=100)S.env.rh=rh;S.env.place=$("place").value.trim();logEvent("env",`현장 ${S.env.ta}℃ · ${S.env.rh}%`);save();$("envOv").hidden=true;renderAll()});
+function renderOut(){const o=S.env;if(o.ota==null){$("outLine").textContent="바깥 날씨와 비교할 수 있어요";return}const out=feels(o.ota,o.orh),d=curAt()-out;$("outLine").innerHTML=`바깥 체감 <b>${out.toFixed(1)}℃</b> · 현장이 <b>${d>=0?"+":""}${d.toFixed(1)}℃</b>`}
+$("outFetch").addEventListener("click",()=>{const fail=m=>{$("outLine").textContent=m};if(!navigator.geolocation)return fail("위치를 쓸 수 없어요.");fail("위치 확인 중…");
+  navigator.geolocation.getCurrentPosition(async p=>{try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.coords.latitude.toFixed(3)}&longitude=${p.coords.longitude.toFixed(3)}&current=temperature_2m,relative_humidity_2m`);const j=await r.json();S.env.ota=j.current.temperature_2m;S.env.orh=j.current.relative_humidity_2m;save();renderOut()}catch(e){fail("바깥 날씨를 불러오지 못했어요.")}},()=>fail("위치 권한이 없어요."),{timeout:8000})});
+$("guideBtn").addEventListener("click",()=>{const at=curAt();$("guideNow").textContent=`지금 체감 ${at.toFixed(1)}℃ · 나에게는 ${myAt().toFixed(1)}℃ → ${STAGE_NAME[envStage(myAt())]}`;$("guideOv").hidden=false});
+
+/* ============ 직접 측정 ============ */
+$("tMeasure").addEventListener("click",()=>{$("measOv").hidden=false;$("resultPane").hidden=true;$("camStatus").textContent=window.isSecureContext&&navigator.mediaDevices?"시작을 누르면 카메라가 켜져요":"이 화면에서는 카메라를 못 써요. 설치한 앱에서 열거나 숫자로 입력하세요."});
+$("measClose").addEventListener("click",()=>{camStop(true);$("measOv").hidden=true});
+function setMethod(c){$("mCam").setAttribute("aria-pressed",c);$("mHand").setAttribute("aria-pressed",!c);$("camPane").hidden=!c;$("handPane").hidden=c;if(!c)camStop(true)}
+$("mCam").addEventListener("click",()=>setMethod(true));$("mHand").addEventListener("click",()=>setMethod(false));
+let pending=null;
+function showResult(bpm,method,q){pending={bpm,method};$("resultPane").hidden=false;$("resBpm").innerHTML=`${bpm}<small> bpm</small>`;$("resQual").textContent=method==="camera"?(q==="good"?"신호 좋음":"신호 보통"):"직접 입력";$("resultPane").scrollIntoView({behavior:"smooth",block:"nearest"})}
+$("handUse").addEventListener("click",()=>{const v=parseInt($("handBpm").value,10),el=$("handBpm");if(!(v>=35&&v<=220)){el.setCustomValidity("35~220 사이 숫자");el.reportValidity();return}el.setCustomValidity("");showResult(v,"manual")});
+$("resSave").addEventListener("click",()=>{if(!pending)return;const tr=parseFloat($("resTemp").value),temp=isFinite(tr)&&tr>=34&&tr<=43?Math.round(tr*10)/10:null;
+  S.manual.push({at:now(),bpm:pending.bpm,temp,method:pending.method});pushHr(pending.bpm);
+  if(curAt()<31&&!S.workStart&&pending.bpm<110)S.base.push({at:now(),bpm:pending.bpm,method:pending.method});
+  logEvent("measure",`심박 ${pending.bpm}${temp!=null?" · 체온 "+temp+"℃":""}`);save();pending=null;$("handBpm").value="";$("resTemp").value="";$("measOv").hidden=true;camStop(true);evaluate(0);renderAll();toast("측정값을 반영했어요")});
+$("onlyTempSave").addEventListener("click",()=>{const v=parseFloat($("onlyTemp").value);if(!(v>=34&&v<=43)){$("onlyTemp").setCustomValidity("34~43 사이");$("onlyTemp").reportValidity();return}$("onlyTemp").setCustomValidity("");S.manual.push({at:now(),bpm:null,temp:Math.round(v*10)/10,method:"temp"});logEvent("measure",`체온 ${v}℃`);save();$("onlyTemp").value="";$("measOv").hidden=true;evaluate(0);renderAll();toast("체온을 기록했어요")});
+const DUR=20,SETTLE=1.5,cam={stream:null,track:null,raf:0,samples:[],fingerSince:0,lastLive:0,torch:false};
+const vid=$("video"),grab=document.createElement("canvas");grab.width=40;grab.height=30;const gctx=grab.getContext("2d",{willReadFrequently:true});const camMsg=t=>{$("camStatus").textContent=t};
+async function camStart(){$("resultPane").hidden=true;
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){camMsg("이 화면에서는 카메라를 못 써요. 설치한 앱에서 열거나 숫자로 입력하세요.");return}
+  try{cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:320},height:{ideal:240}},audio:false})}
+  catch(e){camMsg(e&&e.name==="NotAllowedError"?"카메라 권한이 꺼져 있어요. 휴대폰 설정 → 앱 → 권한에서 카메라를 허용해 주세요.":"카메라를 열 수 없어요. 다른 앱이 쓰고 있는지 확인해 주세요.");return}
+  vid.srcObject=cam.stream;try{await vid.play()}catch(e){}cam.track=cam.stream.getVideoTracks()[0];cam.torch=false;
+  try{const c=cam.track.getCapabilities&&cam.track.getCapabilities();if(c&&c.torch){await cam.track.applyConstraints({advanced:[{torch:true}]});cam.torch=true}}catch(e){}
+  cam.samples=[];cam.fingerSince=0;$("camBox").classList.add("on");$("camStart").hidden=true;$("camStop").hidden=false;camMsg(cam.torch?"손가락으로 렌즈와 플래시를 덮어주세요":"밝은 곳에서 렌즈를 덮어주세요");cam.raf=requestAnimationFrame(tick)}
+function camStop(silent){cancelAnimationFrame(cam.raf);if(cam.track){try{cam.track.applyConstraints({advanced:[{torch:false}]})}catch(e){}}if(cam.stream)cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null;cam.track=null;vid.srcObject=null;$("camBox").classList.remove("on");$("camStart").hidden=false;$("camStop").hidden=true;if(!silent)camMsg("멈췄어요")}
+function tick(){if(!cam.stream)return;if(vid.readyState>=2){gctx.drawImage(vid,0,0,40,30);const d=gctx.getImageData(8,6,24,18).data;let r=0,g=0,b=0;const n=d.length/4;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2]}r/=n;g/=n;b/=n;
+  const tt=performance.now()/1000,finger=r>80&&r>g*1.4&&r>b*1.4;
+  if(!finger){if(cam.fingerSince)camMsg("손가락이 떨어졌어요. 다시 덮어주세요");cam.fingerSince=0;cam.samples=[];$("camProg").style.width="0";$("camLive").textContent=""}
+  else{if(!cam.fingerSince){cam.fingerSince=tt;camMsg("좋아요, 가만히 있으세요")}
+    if(tt-cam.fingerSince>SETTLE){cam.samples.push({t:tt,v:r});const span=tt-cam.samples[0].t;$("camProg").style.width=Math.min(100,span/DUR*100)+"%";
+      if(span>6&&tt-cam.lastLive>1){cam.lastLive=tt;const p=computeBpm(cam.samples);$("camLive").textContent=p?`약 ${p.bpm} bpm`:"신호 찾는 중"}drawWave();if(span>=DUR){finishCam();return}}}}cam.raf=requestAnimationFrame(tick)}
+function finishCam(){const p=computeBpm(cam.samples);camStop(true);if(!p||p.quality==="poor"){camMsg("신호가 약해요. 손가락을 살짝만 대고 다시 해주세요.");return}camMsg("측정 끝!");showResult(p.bpm,"camera",p.quality)}
+function computeBpm(samples){
+  const n=samples.length;if(n<60)return null;
+  const t=samples.map(s=>s.t),v=samples.map(s=>s.v);
+  const fs=(n-1)/(t[n-1]-t[0]);if(!(fs>8))return null;
+  const w=Math.max(3,Math.round(fs*0.75)),h=Math.floor(w/2);
+  const x=new Array(n);
+  for(let i=0;i<n;i++){let s=0,c=0;for(let j=Math.max(0,i-h);j<=Math.min(n-1,i+h);j++){s+=v[j];c++}x[i]=v[i]-s/c}
+  const k=Math.max(1,Math.round(fs*0.05));const y=new Array(n);
+  for(let i=0;i<n;i++){let s=0,c=0;for(let j=Math.max(0,i-k);j<=Math.min(n-1,i+k);j++){s+=x[j];c++}y[i]=-s/c}
+  /* 자기상관으로 대략의 박동 주기를 먼저 찾고, 그 주기에 맞춰 피크 창 크기를 정함 (중복맥박 오검출 방지) */
+  const ac=lag=>{let s=0,a=0,b=0;for(let i=0;i+lag<n;i++){s+=y[i]*y[i+lag];a+=y[i]*y[i];b+=y[i+lag]*y[i+lag]}return s/Math.sqrt(a*b||1)};
+  const lo=Math.round(fs*0.33),hi=Math.min(n-10,Math.round(fs*1.5));let bestL=0,best=-1;const acv={};
+  for(let L=lo;L<=hi;L++){acv[L]=ac(L);if(acv[L]>best){best=acv[L];bestL=L}}
+  if(best<0.2)return null;
+  for(let L=lo+1;L<hi;L++){if(acv[L]>=acv[L-1]&&acv[L]>=acv[L+1]&&acv[L]>=0.7*best){bestL=L;break}}
+  const per=bestL/fs;
+  const win=Math.max(2,Math.round(fs*per*0.35)),peaks=[];
+  for(let i=win;i<n-win;i++){
+    if(y[i]<=0)continue;let ok=true;
+    for(let j=i-win;j<=i+win;j++){if(y[j]>y[i]||(y[j]===y[i]&&j<i)){ok=false;break}}
+    if(ok&&(!peaks.length||t[i]-t[peaks[peaks.length-1]]>=per*0.6))peaks.push(i);
+  }
+  const iv=[];for(let i=1;i<peaks.length;i++){const d=t[peaks[i]]-t[peaks[i-1]];if(d>=0.33&&d<=1.5)iv.push(d)}
+  if(iv.length<5)return null;
+  const sorted=[...iv].sort((a,b)=>a-b),med=sorted[Math.floor(sorted.length/2)];
+  const good=iv.filter(d=>Math.abs(d-med)/med<=0.2);
+  const ratio=good.length/iv.length;
+  const mean=good.reduce((s,d)=>s+d,0)/good.length;
+  const bpm=Math.round(60/mean);
+  if(bpm<35||bpm>200)return null;
+  return{bpm,quality:ratio>=0.8?"good":ratio>=0.6?"fair":"poor",beats:iv.length};
+}
+
+function drawWave(){const cv=$("wave"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=90;cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);const s=cam.samples;if(s.length<10)return;const t1=s[s.length-1].t,t0=t1-6,seg=s.filter(p=>p.t>=t0);
+  const vals=seg.map((p,i)=>{let a=0,c=0;for(let j=Math.max(0,i-12);j<=Math.min(seg.length-1,i+12);j++){a+=seg[j].v;c++}return -(p.v-a/c)});const mx=Math.max(...vals.map(Math.abs),0.01);
+  g.strokeStyle=cssv("--sos");g.lineWidth=2.5;g.beginPath();seg.forEach((p,i)=>{const X=(p.t-t0)/6*W,Y=H/2-vals[i]/mx*(H*0.4);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}
+$("camStart").addEventListener("click",()=>{unlockAudio();camStart()});$("camStop").addEventListener("click",()=>camStop(false));
+let lastBaseAuto=0;
+function autoBaseline(){if(SIM||S.mode!=="watch"||!watchLive())return;const t=Date.now(),a=actLevel();if(t-lastBaseAuto<(VW.on?60000:10*60000))return;
+  if(curAt()<31||!S.workStart){if((a==null||a<=1)&&!S.rest){const h=hrAvg(60);if(h&&h<110){S.base.push({at:t,bpm:Math.round(h),method:VW.on?"virtual":"watch"});if(S.base.length>30)S.base.shift();lastBaseAuto=t;logEvent("learn",`평소 심박 학습 ${Math.round(h)}`);save()}}}}
+
+/* ============ 구조 요청 ============ */
+const countdown={on:false,until:0,why:""};
+function sosCtx(){if(UID)return S;const id=DEV.last;return id&&USERS.find(u=>u.id===id)?loadData(id):clone(DEF)}
+function startCountdown(why){if(countdown.on||!$("sosOv").hidden)return;unlockAudio();countdown.on=true;countdown.until=Date.now()+5000;countdown.why=why;$("countWhy").textContent=why;$("countNum").textContent="5";$("countOv").hidden=false;$("checkOv").hidden=true;check.until=0;buzz([300]);beep(1,1040)}
+function tickCount(){if(!countdown.on)return;const left=Math.ceil((countdown.until-Date.now())/1000);$("countNum").textContent=Math.max(0,left);if(left>0){buzz([250]);beep(1,1040)}if(left<=0)fireSOS(countdown.why)}
+$("countCancel").addEventListener("click",()=>{countdown.on=false;$("countOv").hidden=true;if(UID)logEvent("sos","구조 요청 취소")});
+$("countNow").addEventListener("click",()=>fireSOS(countdown.why));
+function contacts(c){return[c.contact.mgr,c.contact.buddy].filter(Boolean)}
+function sosMessage(c,reason,loc){const p=c.profile,lines=[`[휴식벨트 구조요청] ${p.nick||"근로자"}${p.age?` (${p.age}세)`:""}`,`사유: ${reason}`,`시각: ${hhmm(now())}`,`장소: ${c.env.place||"-"} · 체감 ${feels(+c.env.ta,+c.env.rh).toFixed(1)}℃`];
+  if(UID&&S.workStart)lines.push(`열 부담 ${EVAL.score} (${EVAL.lv.n})${hrNow()!=null?` · 심박 ${Math.round(hrNow())}`:""}`);if(loc)lines.push(`위치: https://maps.google.com/?q=${loc.lat.toFixed(5)},${loc.lng.toFixed(5)}`);return lines.join("\n")}
+let SOS=null;
+function fireSOS(reason){countdown.on=false;$("countOv").hidden=true;$("restOv").hidden=true;SOS={at:now(),reason,loc:null};if(UID){S.sos=SOS;logEvent("sos",`구조 요청 · ${reason}`)}
+  buzz([800,200,800,200,800]);beep(4,1040);speak("구조 요청입니다. 관리자에게 전화하거나 문자를 보내세요.");renderSos();$("sosOv").hidden=false;
+  try{navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{if(SOS){SOS.loc={lat:p.coords.latitude,lng:p.coords.longitude};renderSos()}},()=>{},{timeout:8000,enableHighAccuracy:true})}catch(e){}}
+function renderSos(){if(!SOS)return;const c=sosCtx(),to=contacts(c),msg=sosMessage(c,SOS.reason,SOS.loc);$("sosTitle").textContent=`구조 요청 ${hhmm(SOS.at)}`;$("sosReason").textContent=SOS.reason;$("sosMsg").textContent=msg;
+  $("sosCall").href=c.contact.mgr?`tel:${c.contact.mgr}`:"tel:119";$("sosCallTxt").textContent=c.contact.mgr?"관리자에게 전화":"관리자 번호 없음 · 119 전화";
+  $("sosSms").href=to.length?`sms:${to.join(",")}?&body=${encodeURIComponent(msg)}`:"#";$("sosSms").style.opacity=to.length?1:.5}
+$("sosSms").addEventListener("click",e=>{if($("sosSms").getAttribute("href")==="#"){e.preventDefault();toast("등록된 연락처가 없어요. 119에 전화하세요")}});
+$("bubOk").addEventListener("click",()=>{clearTimeout(bubT);$("bubOv").hidden=true});
+$("sirenBtn").addEventListener("click",()=>siren.osc?sirenOff():sirenOn());
+let clr=0;$("sosClear").addEventListener("click",()=>{if(!clr){clr=1;$("sosClear").textContent="한 번 더 누르면 끝나요";setTimeout(()=>{clr=0;$("sosClear").textContent="괜찮아요 · 요청 끝내기"},3000);return}
+  clr=0;$("sosClear").textContent="괜찮아요 · 요청 끝내기";sirenOff();SOS=null;if(UID){S.sos=null;logEvent("sos","구조 요청 끝")}$("sosOv").hidden=true;if(UID&&S.rest)$("restOv").hidden=false});
+$("lockSos").addEventListener("click",()=>startCountdown("로그인 화면에서 요청"));
+let check={until:0,why:""};
+function startCheck(why){if(check.until||SOS||countdown.on)return;check={until:Date.now()+15000,why};if(UID)logEvent("check",`안부 확인 · ${why}`);$("checkWhy").textContent=why;$("checkOv").hidden=false;buzz([500,200,500]);beep(3,880);speak("괜찮으세요? 괜찮으면 화면을 눌러주세요.")}
+$("checkOk").addEventListener("click",()=>{check={until:0,why:""};$("checkOv").hidden=true;motion.impactAt=0;motion.stillSince=Date.now()});
+$("checkSos").addEventListener("click",()=>{const w=check.why;check={until:0,why:""};$("checkOv").hidden=true;fireSOS(`안부 확인 중 도움 요청 · ${w}`)});
+$("fallTest").addEventListener("click",()=>{unlockAudio();startCheck("시험: 충격 뒤 움직임 없음")});
+function tickCheck(){if(!check.until)return;const left=check.until-Date.now();$("checkTime").textContent=Math.max(0,Math.ceil(left/1000));if(left<=0){const w=check.why;check={until:0,why:""};$("checkOv").hidden=true;fireSOS(`응답 없음 · ${w}`)}}
+function checkFall(){const fallOn=UID?S.settings.fall:true;if(SIM||!fallOn||!motionLive()||SOS||check.until||countdown.on)return;const t=Date.now();
+  if(motion.impactAt&&motion.stillSince>=motion.impactAt-500&&t-motion.stillSince>=10000&&t-motion.impactAt<60000){motion.impactAt=0;startCheck("큰 충격 뒤 10초 동안 움직임이 없어요");return}
+  if(UID&&S.workStart&&!S.rest&&t-motion.stillSince>=5*60000){motion.stillSince=t;startCheck("작업 중 5분 동안 움직임이 없어요")}}
+
+/* ============ 기록 ============ */
+const EV_NAME={water:"물",rest:"휴식",alarm:"알림",sos:"구조",check:"체크",work:"작업",recover:"회복",device:"기기",learn:"학습",measure:"측정",symptom:"증상",env:"온도"};
+const dayStart=()=>new Date(now()).setHours(0,0,0,0);
+function daySum(){const t0=dayStart(),sm=S.samples.filter(s=>s.at>=t0),rests=S.rests.filter(r=>r.start>=t0),cups=S.water.filter(w=>w.at>=t0).length;
+  let wm=0,st=null;S.events.filter(e=>e.type==="work"&&e.at>=t0).forEach(e=>{if(!e.text.startsWith("작업 끝"))st=e.at;else if(st){wm+=e.at-st;st=null}});if(S.workStart)wm+=now()-Math.max(S.workStart,t0);wm/=60000;
+  const max=sm.reduce((m,s)=>Math.max(m,lvOf(s.score).k),-1),hrs=sm.filter(s=>s.hr),avg=hrs.length?Math.round(hrs.reduce((a,s)=>a+s.hr,0)/hrs.length):null;
+  return{sm,rests,cups,wm,max,avg,alarms:S.events.filter(e=>e.type==="alarm"&&e.at>=t0).length,restMin:rests.reduce((a,r)=>a+(r.actual??r.min),0),need:wm>0?Math.floor(wm/20)+1:0}}
+function summaryText(){const d=daySum(),p=S.profile,dt=new Date(now());
+  return[`[휴식벨트 오늘 기록] ${p.nick||"근로자"} · ${dt.getMonth()+1}/${dt.getDate()}`,`${S.env.place||"-"} · 체감 ${curAt().toFixed(1)}℃ (나의 기준 ${myAt().toFixed(1)}℃)`,`작업 ${minsTxt(d.wm)} · 최고 ${d.max>=0?LV[d.max].n:"-"} · 알림 ${d.alarms}회`,`휴식 ${d.rests.length}회 ${Math.round(d.restMin)}분 · 물 ${d.cups}/${d.need}컵`,d.avg?`평균 심박 ${d.avg}`:""].filter(Boolean).join("\n")}
+function renderRep(){const d=daySum(),dt=new Date(now());$("repTitle").textContent=`${dt.getMonth()+1}월 ${dt.getDate()}일 · ${S.env.place||"현장"}`;
+  $("rWork").textContent=d.wm?minsTxt(d.wm):"–";$("rMax").innerHTML=d.max>=0?`<span class="dot" style="background:var(${LV[d.max].c})"></span>${LV[d.max].n}`:"–";$("rAlarm").innerHTML=`${d.alarms}<small>회</small>`;
+  $("rRest").innerHTML=`${d.rests.length}<small>회</small>`;$("rWater").innerHTML=`${d.cups}<small>/${d.need}컵</small>`;$("r6l").textContent=d.avg?"평균 심박":"자동 기록";$("rAvg").innerHTML=d.avg?`${d.avg}`:`${d.sm.length}<small>회</small>`;
+  const to=S.contact.mgr;$("shareSms").href=to?`sms:${to}?&body=${encodeURIComponent(summaryText())}`:"#";drawDay(d.sm);
+  const E=$("evList");E.innerHTML="";const evs=S.events.filter(e=>e.at>=dayStart());if(!evs.length)E.innerHTML='<p class="small muted">오늘 기록이 없어요.</p>';
+  [...evs].reverse().slice(0,60).forEach(ev=>{const dv=document.createElement("div"),a=document.createElement("span"),b=document.createElement("span");a.className="num muted";a.textContent=hhmm(ev.at);b.innerHTML=`<b>${EV_NAME[ev.type]||ev.type}</b> · `;b.append(ev.text);dv.append(a,b);E.appendChild(dv)});
+  const tb=$("logBody");tb.innerHTML="";$("logEmpty").hidden=S.samples.length>0;
+  [...S.samples].reverse().slice(0,60).forEach(s=>{const lv=lvOf(s.score),tr=document.createElement("tr");tr.innerHTML=`<td class="num">${hhmm(s.at)}</td><td class="num r">${s.score}</td><td><span class="dot" style="background:var(${lv.c})"></span>${lv.n}</td><td class="num r">${s.hr??"–"}</td><td class="r">${s.act!=null?ACT_NAME[s.act]:"–"}</td><td class="num r">${s.feels}</td>`;tb.appendChild(tr)})}
+$("shareSms").addEventListener("click",e=>{if($("shareSms").getAttribute("href")==="#"){e.preventDefault();toast("설정에서 관리자 번호를 넣어주세요")}});
+function drawDay(sm){const cv=$("dayCv"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=200;cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  g.font="700 12px "+cssv("--font");g.fillStyle=cssv("--muted");if(sm.length<2){g.fillText("작업 기록이 쌓이면 그래프가 그려져요",W/2-100,H/2);return}
+  const t0=sm[0].at,t1=sm[sm.length-1].at,L=30,R=6,T=8,B=22,x=t=>L+(W-L-R)*(t-t0)/Math.max(1,t1-t0),y=v=>T+(H-T-B)*(1-v/100);
+  [[0,35,"--g"],[35,55,"--y"],[55,75,"--o"],[75,100,"--r"]].forEach(([a,b,c])=>{g.fillStyle=cssv(c);g.globalAlpha=.1;g.fillRect(L,y(b),W-L-R,y(a)-y(b));g.globalAlpha=1});
+  S.rests.filter(r=>r.start>=t0&&r.start<=t1).forEach(r=>{g.fillStyle=cssv("--line");g.globalAlpha=.8;g.fillRect(x(r.start),T,Math.max(3,x(r.start+(r.actual??r.min)*60000)-x(r.start)),H-T-B);g.globalAlpha=1});
+  [35,55,75].forEach(v=>{g.fillStyle=cssv("--muted");g.fillText(v,4,y(v)+4)});
+  for(let i=1;i<sm.length;i++){g.strokeStyle=cssv(lvOf(sm[i].score).c);g.lineWidth=3.5;g.lineCap="round";g.beginPath();g.moveTo(x(sm[i-1].at),y(sm[i-1].score));g.lineTo(x(sm[i].at),y(sm[i].score));g.stroke()}
+  g.fillStyle=cssv("--muted");[t0,(t0+t1)/2,t1].forEach((t,i)=>g.fillText(hhmm(t),i===0?L:i===1?x(t)-14:W-R-32,H-4))}
+function copyText(t,el,ok){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>el.textContent=ok,()=>el.textContent="복사할 수 없어요.")}
+$("shareCopy").addEventListener("click",()=>copyText(summaryText(),$("shareMsg"),"복사했어요."));
+function csv(){return["시각,열부담,단계,심박,활동,체감온도,모드,휴식중"].concat(S.samples.map(s=>[new Date(s.at).toISOString(),s.score,s.level,s.hr??"",s.act!=null?ACT_NAME[s.act]:"",s.feels,s.mode,s.rest?"Y":""].join(","))).join("\n")}
+$("csvCopy").addEventListener("click",()=>copyText(csv(),$("csvMsg"),"복사했어요. 엑셀에 붙여넣으세요."));
+function twoStep(btn,label,fn){let armed=0;btn.addEventListener("click",()=>{if(armed){armed=0;btn.textContent=label;fn()}else{armed=1;btn.textContent="한 번 더 누르면 실행";setTimeout(()=>{if(armed){armed=0;btn.textContent=label}},3000)}})}
+twoStep($("logClear"),"기록 지우기",()=>{S.samples=[];S.events=[];S.water=[];S.rests=[];S.manual=[];save();renderRep()});
+
+/* ============ 근거 ============ */
+let anaTab="sim",simWho="me";
+document.querySelectorAll("#anaSeg button").forEach(b=>b.addEventListener("click",()=>{anaTab=b.dataset.a;renderAna()}));
+document.querySelectorAll("#simWho button").forEach(b=>b.addEventListener("click",()=>{simWho=b.dataset.w;document.querySelectorAll("#simWho button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderSim()}));
+function renderAna(){document.querySelectorAll("#anaSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.a===anaTab));["sim","crit","diff"].forEach(x=>$("a-"+x).hidden=x!==anaTab);$("a-age").hidden=anaTab!=="sim";if(anaTab==="sim")renderSim()}
+function firstWarn(mat){const envF=clamp((mat-25)/13,0,1.25),target=clamp(100*envF*(0.35+0.65*0.75),0,100);let s=5;for(let t=1;t<=180;t++){s+=(target-s)*(1-Math.exp(-1/20));if(s>=55)return t}return null}
+function renderAgeTable(at){const law=lawRule(at);$("ageBody").innerHTML=[25,35,45,50,55,60,65].map(a=>{const d=ageStep(a)*PT,r=lawRule(at+d),sens=a>=55;let txt=r.stop?"작업 멈추기":r.every?(r.st===1&&sens?"1시간마다 10분":r.text):r.text;
+  if(law.every&&r.every&&law.every<r.every)txt=law.text;const fw=firstWarn(at+d);const me=a===+S.profile.age;
+  return `<tr${me?' style="background:var(--lt)"':""}><td><b>${a}세</b></td><td class="r num">+${d.toFixed(1)}</td><td class="r num">${(33-d).toFixed(1)}℃</td><td>${txt}</td><td class="r num">${fw?fw+"분":"–"}</td></tr>`}).join("")}
+function renderSim(){const at=curAt(),law=lawRule(at);let p=S.profile,ck;
+  if(simWho!=="me"){p={age:+simWho,accl:"ok",work:2};ck=null}
+  const P=personal(p,ck),mat=at+P.delta;$("simCond").textContent=`현장 체감 ${at.toFixed(1)}℃ · ${p.age}세${simWho==="me"?" (내 정보 전체)":" (다른 조건 없음)"} → ${mat.toFixed(1)}℃로 판단`;renderAgeTable(at);
+  const envF=clamp((mat-25)/13,0,1.25),target=clamp(100*envF*(0.35+0.65*0.75),0,100),pts=[];let s=5,first=null;
+  for(let t=0;t<=120;t++){if(t)s+=(target-s)*(1-Math.exp(-1/20));pts.push({t,s});if(first==null&&s>=55)first=t}
+  const lawT=law.stop?0:law.every||null;$("lawT").textContent=lawT===null?"없음":lawT===0?"즉시":lawT+"분";$("lawS").textContent=lawT===null?"체감 33℃ 아래":law.text;
+  $("myT").textContent=first!=null?first+"분":"없음";$("myS").textContent=first!=null?(lawT&&first<lawT?`법보다 ${lawT-first}분 먼저`:"몸 상태 기준"):"2시간 동안 경고 없음";
+  const cv=$("simCv"),dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=200;cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext("2d");g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  const L=30,R=8,T=8,B=22,x=t=>L+(W-L-R)*t/120,y=v=>T+(H-T-B)*(1-v/100);
+  [[0,35,"--g"],[35,55,"--y"],[55,75,"--o"],[75,100,"--r"]].forEach(([a,b,c])=>{g.fillStyle=cssv(c);g.globalAlpha=.1;g.fillRect(L,y(b),W-L-R,y(a)-y(b));g.globalAlpha=1});
+  g.font="700 12px "+cssv("--font");g.fillStyle=cssv("--muted");[35,55,75].forEach(v=>g.fillText(v,4,y(v)+4));for(let t=0;t<=120;t+=30)g.fillText(t+"분",Math.min(x(t)-8,W-34),H-4);
+  if(lawT!==null){g.strokeStyle=cssv("--sos");g.lineWidth=2.5;const lx=x(Math.min(lawT||0,120))-(lawT>=120?1:0);g.beginPath();g.moveTo(lx,T);g.lineTo(lx,H-B);g.stroke()}
+  if(first!=null){g.strokeStyle=cssv("--o");g.lineWidth=2.5;g.setLineDash([5,4]);g.beginPath();g.moveTo(x(first),T);g.lineTo(x(first),H-B);g.stroke();g.setLineDash([])}
+  g.strokeStyle=cssv("--ink");g.lineWidth=3.5;g.lineCap="round";g.beginPath();pts.forEach((q,i)=>{i?g.lineTo(x(q.t),y(q.s)):g.moveTo(x(q.t),y(q.s))});g.stroke()}
+
+/* ============ 설정 ============ */
+function setWatchMsg(t,k){$("watchMsg").textContent=t;$("watchMsg").style.color=k==="warn"?"var(--o)":k==="ok"?"var(--g)":""}
+function fillSettings(){const p=S.profile;$("pNick").value=p.nick;$("pAge").value=p.age;$("pAccl").value=p.accl;$("pWork").value=String(p.work);$("pCond").checked=!!p.cond;$("pHist").checked=!!p.hist;$("pCool").checked=!!p.cool;
+  $("mPhone").value=S.contact.mgr;$("bPhone").value=S.contact.buddy;const st=S.settings;$("sVoice").checked=st.voice;$("sVib").checked=st.vibrate;$("sAuto").checked=st.autoWork;$("sWake").checked=st.wake;$("sBig").checked=st.big;$("sFall").checked=st.fall;$("sShake").checked=DEV.shake;
+  document.querySelectorAll("#setMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===S.mode));$("watchArea").hidden=S.mode!=="watch";$("watchType").value=S.watchType;$("watchGuide").innerHTML=WATCH_GUIDE[S.watchType];
+  const sup=btSupport(),ws=$("watchStatus");
+  if(S.mode!=="watch"){ws.className="note";ws.innerHTML="<b>폰만 사용</b> · 폰 움직임으로 작업 강도를 재고, 나의 체감온도·체크리스트·증상과 합쳐서 판단해요."}
+  else if(watchLive()){ws.className="note ok";ws.innerHTML=`<b>${esc(S.device?.name||"워치")} 연결됨</b> · 지금 심박 ${Math.round(hrNow())} · 평소 심박 학습 ${baseStats().n}회`}
+  else{ws.className=sup.ok?"note":"note warn";ws.innerHTML=sup.ok?"<b>워치를 기다리는 중</b> · 아래 순서대로 연결하세요. 연결 전에는 폰으로 판단해요.":`<b>여기서는 연결할 수 없어요</b><br>${sup.why}`}
+  const standalone=matchMedia("(display-mode: standalone)").matches,inst=$("installState");inst.className=standalone?"note ok":"note";
+  inst.innerHTML=standalone?"<b>앱으로 설치되어 있어요.</b>":location.hostname.endsWith("github.io")?"<b>아직 브라우저로 열려 있어요.</b> 아래 방법으로 설치하세요.":"<b>지금은 미리보기 화면이에요.</b> 휴대폰에서 GitHub 주소를 열어 설치해야 카메라·워치·센서가 동작해요."}
+function readSettings(){const a=parseInt($("pAge").value,10);Object.assign(S.profile,{nick:$("pNick").value.trim()||S.profile.nick,accl:$("pAccl").value,work:+$("pWork").value,cond:$("pCond").checked,hist:$("pHist").checked,cool:$("pCool").checked});if(a>=18&&a<=85)S.profile.age=a;
+  S.contact.mgr=$("mPhone").value.replace(/[^0-9+]/g,"");S.contact.buddy=$("bPhone").value.replace(/[^0-9+]/g,"");
+  Object.assign(S.settings,{voice:$("sVoice").checked,vibrate:$("sVib").checked,autoWork:$("sAuto").checked,wake:$("sWake").checked,big:$("sBig").checked,fall:$("sFall").checked});DEV.shake=$("sShake").checked;saveDev();
+  const u=USERS.find(u=>u.id===UID);if(u){u.nick=S.profile.nick;u.age=S.profile.age;saveUsers()}save();syncWake();lastThermo="";renderAll()}
+["pNick","pAge","pAccl","pWork","pCond","pHist","pCool","mPhone","bPhone","sVoice","sVib","sAuto","sWake","sBig","sFall","sShake"].forEach(id=>$(id).addEventListener("change",readSettings));
+document.querySelectorAll("#setMode button").forEach(b=>b.addEventListener("click",()=>{S.mode=b.dataset.m;if(S.mode==="phone")VW.on=false;save();fillSettings();renderAll()}));
+$("watchType").addEventListener("change",()=>{S.watchType=$("watchType").value;save();fillSettings()});
+$("watchConnect").addEventListener("click",async()=>{await connectWatch(setWatchMsg);const m=$("watchMsg").textContent,c=$("watchMsg").style.color;fillSettings();$("watchMsg").textContent=m;$("watchMsg").style.color=c});
+$("watchVirtual").addEventListener("click",()=>{startVirtual();fillSettings();setWatchMsg("시연용 워치를 연결했어요. 실제 심박이 아니에요.","ok")});
+$("voiceTest").addEventListener("click",()=>{const v=S.settings.voice;S.settings.voice=true;unlockAudio();beep(2,880);buzz([300,100,300]);speak(LV_VOICE[2]);S.settings.voice=v});
+$("myQr").addEventListener("click",showMyQr);
+$("chPin").addEventListener("click",()=>pinFlow({mode:"change"}));
+$("lockNow").addEventListener("click",()=>lock());
+twoStep($("delMe"),"이 사용자 삭제",()=>{ls.del("ys6.d."+UID);USERS=USERS.filter(u=>u.id!==UID);saveUsers();if(DEV.last===UID){DEV.last=null;saveDev()}lock()});
+
+/* ============ 발표 시연 ============ */
+function startSim(mode){if(SIM)stopSim();BACKUP=S;S=clone(S);Object.assign(S,{chat:[],samples:[],events:[],water:[],rests:[],manual:[],sym:null,rest:null,workStart:null,strain:5,lastAlarmK:0,cooldownUntil:0,sos:null,myFor:null,wateredFor:null});
+  S.profile={...S.profile,nick:S.profile.nick||"김반장",age:58,accl:"new",cond:true,hist:false,cool:false,work:2};S.ck={day:todayKey(),a:{sleep:"y",drink:"y",meal:"y",sick:"y",water:"y",shade:"y",buddy:"y"}};
+  if(mode==="watch")S.base=[84,90,87,93,82,88,91,86,89,85].map(b=>({at:Date.now(),bpm:b,method:"demo"}));
+  if(S.env.ta<30)Object.assign(S.env,{ta:31.5,rh:75,place:"지하층 마감"});
+  const v0=new Date().setHours(9,0,0,0);hr.hist=[];
+  SIM={mode,speed:120,v0,r0:performance.now(),act:2,hr:90,base:S.base.length?S.base.reduce((a,b)=>a+b.bpm,0)/S.base.length:88,
+    step(t,dt){const m=S.workStart?(t-S.workStart)/60000:0;this.act=S.rest?0:m<55?2:m<85?3:2;
+      const heat=Math.max(0,myAt()-27),tgt=this.base+[0,10,22,34][this.act]+heat*2*Math.min(1,m/70)*(S.rest?0.25:1)+6;
+      this.hr+=(tgt-this.hr)*(1-Math.exp(-dt/3))+(Math.random()-0.5)*1.5;if(mode==="watch")pushHr(Math.round(this.hr),t);if(t-v0>130*60000)stopSim()}};
+  lastT=now();lastSample=0;$("simBar").hidden=false;lastThermo="";show("home");startWork(false)}
+function stopSim(){if(!SIM)return;SIM=null;S=BACKUP;BACKUP=null;hr.hist=[];hr.last=0;$("simBar").hidden=true;$("restOv").hidden=!S.rest;lastT=now();lastMascot=null;lastThermo="";renderAll()}
+$("simPhone").addEventListener("click",()=>startSim("phone"));$("simWatch").addEventListener("click",()=>startSim("watch"));$("simStop").addEventListener("click",stopSim);
+setInterval(()=>{if(SIM){const m=S.workStart?(now()-S.workStart)/60000:0;$("simTxt").textContent=`시연 · ${minsTxt(m)}째`}},500);
+
+/* ============ 로그인 ============ */
+function lock(){if(SIM)stopSim();UID=null;try{sessionStorage.removeItem("ys6.uid")}catch(e){}$("app").hidden=true;$("nav").hidden=true;["restOv","measOv","symOv","ckOv","envOv","guideOv","chatOv"].forEach(i=>$(i).hidden=true);syncWake();showLock()}
+function showLock(){USERS=ls.get(UK)||[];if(!USERS.length){openOb(true);return}
+  $("lockMascot").innerHTML=mascotSVG(0);const L=$("userList");L.innerHTML="";
+  USERS.forEach(u=>{const b=document.createElement("button");b.type="button";b.className="ubtn";b.innerHTML=`<span class="av">${esc((u.nick||"?").slice(0,1))}</span><span><b>${esc(u.nick)}</b><small>${u.age?u.age+"세 · ":""}비밀번호로 들어가기</small></span>`;
+    b.addEventListener("click",()=>pinFlow({mode:"login",user:u}));L.appendChild(b)});$("lockOv").hidden=false}
+function login(id){const u=USERS.find(x=>x.id===id);if(!u)return;UID=id;S=loadData(id);DEV.last=id;saveDev();try{sessionStorage.setItem("ys6.uid",id)}catch(e){}
+  VW.on=S.mode==="watch"&&!!S.device?.virtual;["lockOv","pinOv","obOv","qrScanOv"].forEach(i=>$(i).hidden=true);$("app").hidden=false;$("nav").hidden=false;
+  startMotion();lastT=now();lastMascot=null;lastThermo="";evaluate(0);show("home");if(S.rest)$("restOv").hidden=false;toast(`${u.nick}님, 안녕하세요`)}
+$("newUser").addEventListener("click",()=>openOb(false));
+$("whoBtn").addEventListener("click",()=>lock());
+// PIN 입력판
+let pin={buf:"",cb:null,fails:0,until:0};
+(function(){const K=$("keys");[1,2,3,4,5,6,7,8,9,"지우기",0,"확인"].forEach(k=>{const b=document.createElement("button");b.type="button";b.className="key"+(typeof k==="string"?" fn":"");b.textContent=k;
+  b.addEventListener("click",()=>{if(k==="지우기")pin.buf=pin.buf.slice(0,-1);else if(k==="확인"){if(pin.buf.length===4)pinSubmit()}else if(pin.buf.length<4){pin.buf+=k;if(pin.buf.length===4)setTimeout(pinSubmit,120)}pinDots()});K.appendChild(b)})})();
+function pinDots(){[...$("pinDots").children].forEach((d,i)=>d.classList.toggle("on",i<pin.buf.length))}
+function pinErr(t){$("pinMsg").textContent=t;const d=$("pinDots");d.classList.remove("shake");void d.offsetWidth;d.classList.add("shake");buzz([200]);pin.buf="";pinDots()}
+function pinAsk(title,sub,cb){pin.buf="";pin.cb=cb;$("pinTitle").textContent=title;$("pinSub").textContent=sub;$("pinMsg").textContent="";pinDots();$("pinOv").hidden=false}
+async function pinSubmit(){const v=pin.buf;if(v.length!==4||!pin.cb)return;if(Date.now()<pin.until){pinErr(`잠시 뒤 다시 해주세요 (${Math.ceil((pin.until-Date.now())/1000)}초)`);return}await pin.cb(v)}
+document.addEventListener("keydown",e=>{if($("pinOv").hidden)return;if(/^[0-9]$/.test(e.key)&&pin.buf.length<4){pin.buf+=e.key;pinDots();if(pin.buf.length===4)setTimeout(pinSubmit,120)}else if(e.key==="Backspace"){pin.buf=pin.buf.slice(0,-1);pinDots()}});
+$("pinClose").addEventListener("click",()=>{$("pinOv").hidden=true});
+function pinFlow(o){
+  if(o.mode==="login"){const u=o.user;pinAsk(`${u.nick}님`,"비밀번호 4자리를 누르세요",async v=>{if(await hashPin(v,u.id)===u.pin){pin.fails=0;login(u.id)}else{pin.fails++;if(pin.fails>=5){pin.until=Date.now()+30000;pin.fails=0}pinErr(pin.fails?`비밀번호가 달라요 (${pin.fails}/5)`:"5번 틀려서 30초 동안 멈춰요")}})}
+  if(o.mode==="change"){const u=USERS.find(x=>x.id===UID);pinAsk("지금 비밀번호","지금 쓰는 4자리를 누르세요",async v=>{if(await hashPin(v,u.id)!==u.pin){pinErr("비밀번호가 달라요");return}
+    pinAsk("새 비밀번호","새로 쓸 4자리를 누르세요",async n1=>{pinAsk("한 번 더","같은 4자리를 한 번 더",async n2=>{if(n1!==n2){pinErr("두 번 입력이 달라요. 처음부터 다시");setTimeout(()=>pinFlow(o),900);return}u.pin=await hashPin(n1,u.id);saveUsers();$("pinOv").hidden=true;toast("비밀번호를 바꿨어요")})})})}}
+// QR
+function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function b64d(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return decodeURIComponent(escape(atob(s)))}
+function qrPayload(){const u=USERS.find(x=>x.id===UID),p=S.profile;return "YS1|"+b64e(JSON.stringify({i:u.id,t:u.tok,h:u.pin,n:p.nick,a:p.age,c:[p.accl==="new"?1:0,p.cond?1:0,p.hist?1:0,p.cool?1:0,+p.work],m:S.contact.mgr,b:S.contact.buddy,w:S.mode}))}
+function showMyQr(){$("qrSvg").innerHTML=QR.svg(qrPayload(),220);$("qrName").textContent=`${S.profile.nick}님 로그인 카드`;$("qrShowOv").hidden=false}
+let scan={stream:null,timer:0};
+async function openScan(){$("qrScanOv").hidden=false;const msg=t=>{$("scanMsg").textContent=t};
+  if(!("BarcodeDetector" in window)){msg("이 휴대폰 브라우저는 QR 읽기를 지원하지 않아요. 내 이름을 눌러 비밀번호로 들어가세요. (안드로이드 크롬은 지원해요)");return}
+  if(!window.isSecureContext||!navigator.mediaDevices){msg("이 화면에서는 카메라를 못 써요. 설치한 앱에서 해주세요.");return}
+  try{scan.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}catch(e){msg("카메라 권한을 허용해 주세요.");return}
+  const v=$("scanVideo");v.srcObject=scan.stream;try{await v.play()}catch(e){}let det;try{det=new BarcodeDetector({formats:["qr_code"]})}catch(e){msg("QR 읽기를 시작하지 못했어요.");return}
+  scan.timer=setInterval(async()=>{try{const r=await det.detect(v);if(r&&r[0])onQr(r[0].rawValue)}catch(e){}},300)}
+function closeScan(){clearInterval(scan.timer);if(scan.stream)scan.stream.getTracks().forEach(t=>t.stop());scan.stream=null;$("qrScanOv").hidden=true}
+function onQr(txt){if(!txt.startsWith("YS1|")){$("scanMsg").textContent="휴식벨트 로그인 QR이 아니에요";return}let o;try{o=JSON.parse(b64d(txt.slice(4)))}catch(e){$("scanMsg").textContent="QR을 읽지 못했어요";return}
+  closeScan();let u=USERS.find(x=>x.id===o.i);
+  if(u){if(u.tok!==o.t){toast("예전 QR이에요. 비밀번호로 들어가세요");return}login(u.id);return}
+  u={id:o.i,nick:o.n,age:o.a,pin:o.h,tok:o.t};USERS.push(u);saveUsers();const s=loadData(u.id);Object.assign(s.profile,{nick:o.n,age:o.a,accl:o.c[0]?"new":"ok",cond:!!o.c[1],hist:!!o.c[2],cool:!!o.c[3],work:o.c[4]||2});s.contact={mgr:o.m||"",buddy:o.b||""};s.mode=o.w||"phone";ls.set("ys6.d."+u.id,s);
+  login(u.id);toast(`${o.n}님 정보를 이 휴대폰으로 옮겼어요`)}
+$("qrLogin").addEventListener("click",openScan);$("scanClose").addEventListener("click",closeScan);
+
+/* ============ 첫 등록 ============ */
+let ob=0,obMode="phone",obFirst=false;
+function openOb(first){obFirst=first;ob=0;obMode="phone";["oNick","oPin","oPin2","oAge","oMPhone","oBPhone"].forEach(i=>$(i).value="");["oNew","oCond","oHist","oHeavy","oCool"].forEach(i=>$(i).checked=false);$("ob1Msg").textContent="";$("obConnMsg").textContent="";
+  $("obMascot").innerHTML=mascotSVG(0);$("lockOv").hidden=true;$("obOv").hidden=false;renderOb()}
+function renderOb(){document.querySelectorAll("#obOv section").forEach(s=>s.hidden=+s.dataset.s!==ob);[...$("obSteps").children].forEach((d,i)=>d.classList.toggle("on",i<=ob));
+  document.querySelectorAll("#obOv .opt").forEach(c=>c.setAttribute("aria-checked",String(c.dataset.m===obMode)));$("obWatch").hidden=obMode!=="watch";$("obWatchGuide").innerHTML=WATCH_GUIDE[$("oWatchType").value];
+  $("obBack").hidden=ob===0;$("obNext").textContent=ob===0?"시작하기":ob===4?"등록 완료":"다음";$("obCancel").hidden=obFirst||ob>0;if(ob===3)obPreview()}
+document.querySelectorAll("#obOv .opt").forEach(c=>c.addEventListener("click",()=>{obMode=c.dataset.m;renderOb()}));
+$("oWatchType").addEventListener("change",renderOb);
+const obSay=(t,k)=>{$("obConnMsg").textContent=t;$("obConnMsg").style.color=k==="warn"?"var(--o)":k==="ok"?"var(--g)":""};
+$("obConnect").addEventListener("click",()=>connectWatch(obSay));
+$("obVirtual").addEventListener("click",()=>{VW.on=true;obSay("시연용 워치를 쓸게요 (실제 심박 아님)","ok")});
+function obProfile(){const a=parseInt($("oAge").value,10);return{nick:$("oNick").value.trim(),age:a>=18&&a<=85?a:50,accl:$("oNew").checked?"new":"ok",work:$("oHeavy").checked?3:2,cond:$("oCond").checked,hist:$("oHist").checked,cool:$("oCool").checked}}
+function obPreview(){const pr=obProfile(),P=personal(pr,null),t=(33-P.delta).toFixed(1);$("obPreview").innerHTML=P.pts?`<b>나의 기준: 체감 ${t}℃부터 휴식</b> (법 33℃)<br>${P.reasons.join(" · ")}`:"<b>나의 기준: 체감 33℃부터 휴식</b> (법 기준과 같아요)"}
+["oAge","oNew","oCond","oHist","oHeavy","oCool"].forEach(id=>$(id).addEventListener("input",obPreview));
+$("obNext").addEventListener("click",async()=>{
+  if(ob===1){const n=$("oNick").value.trim(),p1=$("oPin").value,p2=$("oPin2").value;
+    if(!n){$("ob1Msg").textContent="별명을 넣어주세요";return}if(USERS.some(u=>u.nick===n)){$("ob1Msg").textContent="같은 별명이 이미 있어요";return}
+    if(!/^[0-9]{4}$/.test(p1)){$("ob1Msg").textContent="비밀번호는 숫자 4자리예요";return}if(p1!==p2){$("ob1Msg").textContent="두 번 입력한 비밀번호가 달라요";return}$("ob1Msg").textContent=""}
+  if(ob===3){const a=parseInt($("oAge").value,10);if(!(a>=18&&a<=85)){$("oAge").setCustomValidity("18~85 사이 나이를 넣어주세요");$("oAge").reportValidity();return}$("oAge").setCustomValidity("")}
+  if(ob<4){ob++;renderOb();$("obOv").scrollTo(0,0);return}
+  const id=rid(8),u={id,nick:$("oNick").value.trim(),age:obProfile().age,tok:rid(10)};u.pin=await hashPin($("oPin").value,id);USERS.push(u);saveUsers();
+  const s=clone(DEF);s.profile=obProfile();s.contact={mgr:$("oMPhone").value.replace(/[^0-9+]/g,""),buddy:$("oBPhone").value.replace(/[^0-9+]/g,"")};s.mode=obMode;s.watchType=$("oWatchType").value;
+  if(obMode==="watch"&&VW.on)s.device={name:"시연용 워치",virtual:true};else if(obMode==="watch"&&hr.dev)s.device={name:hr.dev.name||"심박 기기"};
+  ls.set("ys6.d."+id,s);$("obOv").hidden=true;await startMotion();try{if("Notification" in window&&Notification.permission==="default")await Notification.requestPermission()}catch(e){}
+  login(id);setTimeout(showMyQr,600)});
+$("obBack").addEventListener("click",()=>{if(ob>0){ob--;renderOb()}});
+$("obCancel").addEventListener("click",()=>{$("obOv").hidden=true;showLock()});
+
+/* ============ 설치 ============ */
+let deferred=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;$("installBtn").hidden=false});
+$("installBtn").addEventListener("click",async()=>{if(!deferred)return;deferred.prompt();try{await deferred.userChoice}catch(e){}deferred=null;$("installBtn").hidden=true});
+if("serviceWorker" in navigator&&location.protocol==="https:"&&document.querySelector('link[rel="manifest"]'))navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ============ 시작 ============ */
+document.documentElement.dataset.cs=matchMedia("(prefers-color-scheme: dark)").matches?"d":"l";
+window.addEventListener("resize",()=>{if(!UID)return;if(!$("v-ana").hidden)renderAna();if(!$("v-rep").hidden)renderRep()});
+buildRules();
+if(USERS.length&&DEV.shake)startMotion();
+setInterval(loop,1000);
+(function boot(){let sid=null;try{sid=sessionStorage.getItem("ys6.uid")}catch(e){}
+  if(sid&&USERS.some(u=>u.id===sid))login(sid);else showLock();
+  if(new URLSearchParams(location.search).get("sos")==="1"){try{history.replaceState(null,"",location.pathname)}catch(e){}startCountdown("바로가기로 요청했어요")}})();
+
+</script>
+
+</body>
+</html>
