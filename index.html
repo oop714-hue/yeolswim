@@ -479,10 +479,11 @@ canvas.wave{width:100%;height:90px;display:block;background:var(--sunk);border-r
     </div>
     <div class="card"><h2>있었던 일</h2><div class="events" id="evList"></div></div>
     <div class="card">
-      <h2>5분마다 자동 기록</h2>
+      <h2>1분마다 자동 기록</h2>
       <div class="tbl"><table class="nowrap"><thead><tr><th>시각</th><th class="r">점수</th><th>단계</th><th class="r">심박</th><th class="r">활동</th><th class="r">체감</th></tr></thead><tbody id="logBody"></tbody></table></div>
-      <p class="small muted" id="logEmpty">작업 중에는 5분마다 자동으로 기록돼요.</p>
-      <div class="btns"><button class="btn sm" id="csvCopy" type="button">엑셀용 복사 (CSV)</button><button class="btn sm danger" id="logClear" type="button">기록 지우기</button></div>
+      <p class="small muted" id="logEmpty">전원 버튼으로 작업을 시작하면 1분마다 자동으로 기록돼요.</p>
+      <button class="btn ink" id="csvSave" type="button">엑셀 파일로 저장 (CSV)</button>
+      <div class="btns"><button class="btn sm" id="csvCopy" type="button">엑셀용 복사</button><button class="btn sm danger" id="logClear" type="button">기록 지우기</button></div>
       <p class="small muted" id="csvMsg"></p>
     </div>
   </section>
@@ -1077,7 +1078,7 @@ function loop(){
   const t=now(),dt=(t-lastT)/60000;lastT=t;if(SIM)SIM.step(t,dt);
   const e=evaluate(dt),a=actLevel();
   if(!S.workStart&&S.settings.autoWork&&!SIM&&a!=null&&a>=1&&motionLive()){actRun+=dt;if(actRun>=3)startWork(true)}else actRun=0;
-  if(S.workStart&&t-lastSample>=5*60000){lastSample=t;const h=hrAvg(60);S.samples.push({at:t,score:e.score,level:e.lv.n,hr:h!=null?Math.round(h):null,act:e.actIdx,feels:+curAt().toFixed(1),mode:e.mode,rest:!!S.rest});if(S.samples.length>3000)S.samples.shift();save()}
+  if(S.workStart&&t-lastSample>=60000){lastSample=t;const h=hrAvg(60),w=motion.secs.slice(-60),mv=w.length?w.reduce((s,x)=>s+x,0)/w.length:null;S.samples.push({at:t,score:e.score,level:e.lv.n,hr:h!=null?Math.round(h):null,act:e.actIdx,mv:mv!=null?+mv.toFixed(3):null,feels:+curAt().toFixed(1),my:+myAt().toFixed(1),strain:+S.strain.toFixed(1),mode:e.mode,rest:!!S.rest,ta:+S.env.ta,rh:+S.env.rh,temp:(S.manual.filter(m=>m.temp!=null&&t-m.at<30*60000).pop()||{}).temp??null});if(S.samples.length>3000)S.samples.shift();save()}
   if(S.workStart&&!S.rest){const k=e.lv.k;
     if(k>S.lastAlarmK&&k>=1){S.lastAlarmK=k;logEvent("alarm",`${e.lv.n} · 열 부담 ${e.score}${e.flags.length?" · "+e.flags.join(", "):""}`);alarm(k,(e.flags.length?e.flags[0]+". ":"")+LV_VOICE[k]);bubble(k,["","주의","경고 · 휴식","대피"][k],LV_SAY[k]+(e.flags.length?` (${e.flags[0]})`:""));
       if(k>=2&&t>=S.cooldownUntil)startRest(REST_MIN[k],true,`${e.lv.n} 단계${e.flags.length?" · "+e.flags.join(", "):""}`,"risk")}
@@ -1137,12 +1138,13 @@ function renderNotices(force){if(!UID)return;const items=[],t=now();
     if(law.stop){items.push({k:"s",c:"--r",t:"체감 38℃ 이상 · 작업을 멈추세요",b:"쉬기",a:"law"});if(S.lawFor!==ls0){S.lawFor=ls0;bubble(3,"폭염중대경보","긴급한 경우를 제외하고 작업을 중지하세요.")}}
     else if(mine.every&&since>=mine.every){items.push({k:"m",c:"--o",t:`쉴 시간이에요 · ${mine.text}`,b:`${mine.min}분 쉬기`,a:"my"});
       if(S.myFor!==ls0){S.myFor=ls0;buzz([300,120,300]);bubble(2,"휴식 시간",`나의 기준에 따라 ${mine.min}분 쉬세요.`);beep(2,700);speak(`쉴 시간이에요. ${mine.min}분 쉬세요.`);notify("쉴 시간이에요.")}}}
+  if(!SIM&&!motionLive())items.unshift({k:"mo",c:"--o",t:"폰 움직임 센서가 꺼져 있어요",b:"켜기",a:"motion"});
   if(!ckToday())items.push({k:"c",c:"--brand",t:"오늘 작업 전 체크를 아직 안 했어요",b:"체크",a:"ck"});
   if(S.mode==="watch"&&!SIM&&!watchLive())items.push({k:"d",c:"--idle",t:"워치 심박이 안 들어와요 · 폰으로 판단 중",b:"연결",a:"set"});
   const key=items.map(i=>i.k+i.t).join("|");if(!force&&key===noticeKey)return;noticeKey=key;
   const box=$("notices");box.innerHTML="";
   items.forEach(i=>{const d=document.createElement("div");d.className="notice";d.style.setProperty("--nc",`var(${i.c})`);const s=document.createElement("span");s.textContent=i.t;const b=document.createElement("button");b.className="btn sm ink";b.type="button";b.textContent=i.b;
-    b.addEventListener("click",()=>{if(i.a==="drink")drink();else if(i.a==="law")startRest(20,false,"체감 38℃ 이상","law");else if(i.a==="my"){const r=myRule();startRest(r.min||10,false,`나의 기준 · ${r.text}`,"my")}else if(i.a==="ck")openCk();else show(i.a)});d.append(s,b);box.appendChild(d)})}
+    b.addEventListener("click",()=>{if(i.a==="drink")drink();else if(i.a==="law")startRest(20,false,"체감 38℃ 이상","law");else if(i.a==="my"){const r=myRule();startRest(r.min||10,false,`나의 기준 · ${r.text}`,"my")}else if(i.a==="ck")openCk();else if(i.a==="motion"){startMotion().then(ok=>{setTimeout(()=>{renderNotices(true);toast(motionLive()?"움직임 센서가 켜졌어요":(ok?"폰을 조금 움직여 보세요":"설정 → 사파리 → 동작 및 방향 접근을 켜 주세요"))},1500)})}else show(i.a)});d.append(s,b);box.appendChild(d)})}
 
 /* ============ 화면 ============ */
 const VIEWS=["home","rep","ana","set"];
@@ -1339,11 +1341,13 @@ async function chatAnswer(q){const t=q.replace(/\s+/g," "),rs=ruleSymptom(t);
     const fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>");
     try{const r=await ai(msgs,{cache:false,modelTier:"quick",onText:({text})=>{const el=bub();if(el)el.innerHTML=fmt(text)}});
       m.html=(rs&&rs.sev?(rs.sev>=3?`<span class="badge r">위험</span> `:rs.sev===2?`<span class="badge o">주의</span> `:`<span class="badge y">가벼움</span> `):"")+fmt(r.text||"");m.acts=rs?rs.acts:[];save();renderChat();renderChatPreview()}
-    catch(e){S.chat.pop();save();if(e&&e.code==="not_granted")AI=null;chatAdd("bot",rs?rs.html:(ruleTalk(t)||"지금은 답을 만들지 못했어요. 증상을 짧게 다시 말해 주세요."),rs?rs.acts:[])}
+    catch(e){S.chat.pop();save();chatAdd("bot",rs?rs.html:(ruleTalk(t)||"지금은 답을 만들지 못했어요. 증상을 짧게 다시 말해 주세요."),rs?rs.acts:[])}
   }else{if(rs)chatAdd("bot",rs.html+(S.workStart?`<p class="tiny muted">지금 체감 ${curAt().toFixed(1)}℃ · 나의 기준 ${myAt().toFixed(1)}℃ · 열 부담 ${EVAL.score}</p>`:""),rs.acts);
-    else{const tk=ruleTalk(t);chatAdd("bot",tk||`잘 이해하지 못했어요. 아래 버튼에서 비슷한 증상을 고르거나 "어지러워요", "머리가 아파요"처럼 말해 주세요. "언제 쉬어요?", "물 얼마나 마셔요?"처럼 물어봐도 돼요.<br><span class="tiny muted">정신이 흐리거나 숨이 차면 바로 119에 전화하세요.</span>`,tk?[]:["119"])}}
+    else{const tk=ruleTalk(t);chatAdd("bot",tk||`${esc(S.profile.nick||"")}님 말씀 잘 들었어요. 지금 체감온도는 <b>${curAt().toFixed(1)}℃</b>, ${esc(S.profile.nick||"")}님 기준으로는 <b>${myAt().toFixed(1)}℃</b>예요. 몸이 조금이라도 불편하면 어디가 어떤지(예: 어지러움, 두통, 메스꺼움, 쥐) 말해 주세요. 바로 할 일을 알려드릴게요. 휴식 시간·물·온도도 물어보셔도 돼요.<br><span class="tiny muted">정신이 흐리거나 숨이 차면 바로 119에 전화하세요.</span>`,tk?[]:["rest","water"])}}
   if(rs&&rs.sev<3&&!rs.other){if(!S.workStart)startWork(false);evaluate(0);renderAll()}}
-let AI;async function getAI(){if(AI!==undefined)return AI;AI=null;try{if(window.claude&&window.claude.use){const s=await Promise.race([window.claude.use("sample"),new Promise(r=>setTimeout(()=>r(null),4000))]);AI=s||null}}catch(e){AI=null}return AI}
+let AI=null,aiP=null;function getAI(){if(AI)return Promise.resolve(AI);if(aiP)return aiP;
+  aiP=(async()=>{try{if(window.claude&&window.claude.use){const s=await Promise.race([window.claude.use("sample"),new Promise(r=>setTimeout(()=>r(null),12000))]);if(s)AI=s}}catch(e){}aiP=null;return AI})();return aiP}
+getAI();
 let chatBusy=false;function chatSend(q){q=(q||"").trim();if(!q||chatBusy)return;chatAdd("me",esc(q));$("chatIn").value="";chatBusy=true;setTimeout(async()=>{try{await chatAnswer(q)}finally{chatBusy=false}},300)}
 function openChat(){$("chatOv").hidden=false;getAI().then(a=>{$("chatSub").textContent=a?"Claude가 답해요 · 응급조치 기준 · 대화는 이 폰에만 저장":"응급조치 안내 · 대화는 이 폰에만 저장돼요"});const c=S.chat||[],last=c[c.length-1];
   if(!last||new Date(last.at).toDateString()!==new Date(now()).toDateString())chatAdd("bot",`${esc(S.profile.nick||"")}님, 몸이 어디가 불편한가요? 증상을 적거나 아래 버튼을 눌러 주세요.<br><span class="tiny muted">질병관리청 온열질환 응급조치를 바탕으로 알려드려요. 의사의 진료를 대신하지는 않아요.</span>`);else renderChat();
@@ -1496,8 +1500,14 @@ function drawDay(sm){const cv=$("dayCv"),dpr=window.devicePixelRatio||1,W=cv.cli
   g.fillStyle=cssv("--muted");[t0,(t0+t1)/2,t1].forEach((t,i)=>g.fillText(hhmm(t),i===0?L:i===1?x(t)-14:W-R-32,H-4))}
 function copyText(t,el,ok){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>el.textContent=ok,()=>el.textContent="복사할 수 없어요.")}
 $("shareCopy").addEventListener("click",()=>copyText(summaryText(),$("shareMsg"),"복사했어요."));
-function csv(){return["시각,열부담,단계,심박,활동,체감온도,모드,휴식중"].concat(S.samples.map(s=>[new Date(s.at).toISOString(),s.score,s.level,s.hr??"",s.act!=null?ACT_NAME[s.act]:"",s.feels,s.mode,s.rest?"Y":""].join(","))).join("\n")}
+const loc=t=>{const d=new Date(t);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`};
+function csv(){const p=S.profile;return["시각,경과(분),열부담,단계,심박,체온(℃),기온(℃),습도(%),체감온도,나의체감온도,활동단계,움직임값(m/s2),누적열부담,모드,휴식중,별명,나이"].concat(S.samples.map((s,i)=>[loc(s.at),Math.round((s.at-S.samples[0].at)/60000),s.score,s.level,s.hr??"",s.temp??"",s.ta??"",s.rh??"",s.feels,s.my??"",s.act!=null?ACT_NAME[s.act]:"",s.mv??"",s.strain??"",s.mode,s.rest?"Y":"",p.nick,p.age].join(","))).join("\n")}
+function csvMeasure(){return["시각,심박(bpm),체온(℃),방법"].concat(S.manual.map(m=>[loc(m.at),m.bpm??"",m.temp??"",{camera:"카메라",manual:"직접 입력",temp:"체온 입력"}[m.method]||m.method].join(","))).join("\n")}
+function csvEvents(){return["시각,종류,내용"].concat(S.events.map(e=>[loc(e.at),EV_NAME[e.type]||e.type,'"'+String(e.text).replace(/"/g,"'")+'"'].join(","))).join("\n")}
+function saveFile(name,text){const b=new Blob(["\ufeff"+text],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}
 $("csvCopy").addEventListener("click",()=>copyText(csv(),$("csvMsg"),"복사했어요. 엑셀에 붙여넣으세요."));
+$("csvSave").addEventListener("click",()=>{if(!S.samples.length){$("csvMsg").textContent="아직 기록이 없어요. 전원 버튼으로 작업을 시작하면 1분마다 기록돼요.";return}const d=new Date(now()),tag=`${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  saveFile(`restbelt_${tag}_1min.csv`,csv());setTimeout(()=>saveFile(`restbelt_${tag}_measure.csv`,csvMeasure()),700);setTimeout(()=>saveFile(`restbelt_${tag}_events.csv`,csvEvents()),1400);$("csvMsg").textContent="파일 3개를 저장했어요 (1분 기록 · 심박·체온 측정 · 알림·휴식). 아이폰은 '파일' 앱 → 다운로드에 있어요."});
 function twoStep(btn,label,fn){let armed=0;btn.addEventListener("click",()=>{if(armed){armed=0;btn.textContent=label;fn()}else{armed=1;btn.textContent="한 번 더 누르면 실행";setTimeout(()=>{if(armed){armed=0;btn.textContent=label}},3000)}})}
 twoStep($("logClear"),"기록 지우기",()=>{S.samples=[];S.events=[];S.water=[];S.rests=[];S.manual=[];save();renderRep()});
 
